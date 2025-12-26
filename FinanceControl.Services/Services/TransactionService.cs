@@ -16,7 +16,7 @@ public class TransactionService : ITransactionService
         _context = context;
     }
 
-    public async Task CreateTransactionAsync(CreateTransactionRequestDto requestDto)
+    public async Task<int> CreateTransactionAsync(CreateTransactionRequestDto requestDto)
     {
         Transaction transaction = new Transaction(
             requestDto.Value,
@@ -30,6 +30,8 @@ public class TransactionService : ITransactionService
 
         await _context.Transactions.AddAsync(transaction);
         await _context.SaveChangesAsync();
+
+        return transaction.Id;
     }
 
     public async Task<TransactionResponseDto?> GetTransactionByIdAsync(int transactionId)
@@ -41,12 +43,14 @@ public class TransactionService : ITransactionService
 
         TransactionResponseDto response = new TransactionResponseDto()
         {
+            Id = transaction.Id,
             Value = transaction.Value,
             Category = transaction.Category,
             Type = transaction.Type.ToString(),
             TransactionDate = transaction.TransactionDate,
             PaymentType = transaction.PaymentType.ToString(),
-            Reccurence = transaction.Reccurence.ToString()
+            Reccurence = transaction.Reccurence.ToString(),
+            Description = transaction.Description
         };
 
         return response;
@@ -55,24 +59,22 @@ public class TransactionService : ITransactionService
     public async Task<PagedResponse<TransactionResponseDto>> GetAllTransactionsPagedAsync(int page, int pageSize)
     {
         int offset = (page - 1) * pageSize;
-        var transactionsTask = _context.Transactions.OrderByDescending(t => t.CreatedAt).Skip(offset).Take(pageSize).ToListAsync();
 
-        var totalItemsTask = _context.Transactions.CountAsync();
+        var transactions = await _context.Transactions.OrderByDescending(t => t.CreatedAt).Skip(offset).Take(pageSize).ToListAsync();
+        var totalItems = await _context.Transactions.CountAsync();
 
-        await Task.WhenAll(transactionsTask, totalItemsTask);
-
-        var transactions = await transactionsTask;
-        var totalItems = await totalItemsTask;
         int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
         var transactionsDto = transactions.Select(t => new TransactionResponseDto
         {
+            Id = t.Id,
             Value = t.Value,
             Category = t.Category,
             Type = t.Type.ToString(),
             TransactionDate = t.TransactionDate,
             PaymentType = t.PaymentType.ToString(),
-            Reccurence = t.Reccurence.ToString()
+            Reccurence = t.Reccurence.ToString(),
+            Description = t.Description
         });
 
         PagedResponse<TransactionResponseDto> response = new PagedResponse<TransactionResponseDto>()
@@ -90,28 +92,30 @@ public class TransactionService : ITransactionService
 
     public async Task UpdateTransactionAsyncById(UpdateTransactionRequestDto requestDto)
     {
-        try
-        {
-            Transaction transaction = new Transaction(
-                requestDto.Value,
-                Enum.Parse<EnumTransactionType>(requestDto.Type),
-                requestDto.Category,
-                requestDto.Date,
-                Enum.Parse<EnumPaymentType>(requestDto.PaymentType),
-                Enum.Parse<EnumPaymentRecurrence>(requestDto.Reccurence),
-                requestDto.Description
-            );
-        
-            var transactionToPatch = await _context.Transactions.FindAsync(requestDto.TransactionId);
-        
-            _context.Transactions.Update(transactionToPatch);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            throw;
-        }
-        
+        var transactionToPatch = await _context.Transactions.SingleAsync(t => t.Id.Equals(requestDto.TransactionId));
+
+        if (transactionToPatch == null)
+            throw new Exception($"Transaction with ID {requestDto.TransactionId} not found");
+
+        transactionToPatch.Value = requestDto.Value;
+        transactionToPatch.Type = Enum.Parse<EnumTransactionType>(requestDto.Type);
+        transactionToPatch.Category = requestDto.Category;
+        transactionToPatch.TransactionDate = requestDto.Date;
+        transactionToPatch.PaymentType = Enum.Parse<EnumPaymentType>(requestDto.PaymentType);
+        transactionToPatch.Reccurence = Enum.Parse<EnumPaymentRecurrence>(requestDto.Reccurence);
+        transactionToPatch.Description = requestDto.Description;
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteTransactionById(int transactionId)
+    {
+        var transaction = await _context.Transactions.SingleAsync(t => t.Id.Equals(transactionId));
+
+        if(transaction == null)
+            throw new Exception($"Transaction with ID: {transactionId} not found");
+
+        _context.Remove(transaction);
+        await _context.SaveChangesAsync();
     }
 }

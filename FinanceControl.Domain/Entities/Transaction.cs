@@ -27,7 +27,8 @@ namespace FinanceControl.Domain.Entities
             DateOnly transactionDate,
             EnumPaymentType paymentType,
             EnumPaymentRecurrence recurrence,
-            string? description = null)
+            string? description = null
+            )
         {
             Value = value;
             Type = type;

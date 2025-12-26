@@ -11,12 +11,14 @@ namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface ITransactionService
     {
-        Task CreateTransactionAsync(CreateTransactionRequestDto requestDto);
+        Task<int> CreateTransactionAsync(CreateTransactionRequestDto requestDto);
 
         Task<TransactionResponseDto?> GetTransactionByIdAsync(int transactionId);
 
         Task<PagedResponse<TransactionResponseDto>> GetAllTransactionsPagedAsync(int page, int pageSize);
 
         Task UpdateTransactionAsyncById( UpdateTransactionRequestDto requestDto);
+
+        Task DeleteTransactionById(int transactionId);
     }
 }

@@ -18,8 +18,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTransactionAsync([FromBody] CreateTransactionRequestDto requestDto)
         {
-            await _transactionService.CreateTransactionAsync(requestDto);
-            return Ok();
+            var response = await _transactionService.CreateTransactionAsync(requestDto);
+            return Ok(new {message = @$"TransactionId: {response.ToString()}" });
         }
 
         [HttpGet("by-id/{transactionId:int}")]
@@ -39,10 +39,17 @@ namespace FinanceControl.WebApi.Controllers
             return Ok(response);
         }
 
-        [HttpPatch("update")]
+        [HttpPatch("update-by-id")]
         public async Task<IActionResult> UpdateTransactionAsyncById([FromBody] UpdateTransactionRequestDto requestDto)
         {
             await _transactionService.UpdateTransactionAsyncById(requestDto);
+            return Ok();
+        }
+
+        [HttpDelete("delete-by-id/{transactionId:int}")]
+        public async Task<IActionResult> DeleteTransactionById([FromRoute] int transactionId)
+        {
+            await _transactionService.DeleteTransactionById(transactionId);
             return Ok();
         }
     }
