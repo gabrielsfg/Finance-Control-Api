@@ -11,14 +11,28 @@ namespace FinanceControl.WebApi.Controllers
     {
         private readonly IUserService _userService;
 
-        [HttpPost("register")]
-        public async Task<IActionResult> RegisterUserAsync(CreateUserRequestDto requestDto)
+        public UserController(IUserService userService)
         {
-            await _userService.RegisterUserAsync(requestDto);
-            return Ok();
+            _userService = userService;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterUserAsync([FromBody]CreateUserRequestDto requestDto)
+        {
+            var user = await _userService.RegisterUserAsync(requestDto);
+            if (user is null)
+                return BadRequest("Email already existis.");
+
+            return Ok(user);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> UserLoginAsync()
+        public async Task<IActionResult> UserLoginAsync([FromBody]UserLoginRequestDto requestDto)
+        {
+            var token = await _userService.UserLoginAsync(requestDto);
+            if (token is null)
+                return BadRequest("Invalid email or password.");
+            return Ok(token);
+        }
     }
 }
