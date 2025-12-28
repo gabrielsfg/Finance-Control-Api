@@ -1,6 +1,7 @@
 ﻿using FinanceControl.Domain.Entities;
 using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Shared.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceControl.WebApi.Controllers
@@ -15,6 +16,8 @@ namespace FinanceControl.WebApi.Controllers
         {
             _transactionService = transactionService;
         }
+        
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateTransactionAsync([FromBody] CreateTransactionRequestDto requestDto)
         {
@@ -22,6 +25,7 @@ namespace FinanceControl.WebApi.Controllers
             return Ok(new {message = @$"TransactionId: {response.ToString()}" });
         }
 
+        [Authorize]
         [HttpGet("by-id/{transactionId:int}")]
         public async Task<IActionResult> GetTransactionByIdAsync([FromRoute] int transactionId)
         {
@@ -32,6 +36,7 @@ namespace FinanceControl.WebApi.Controllers
             return Ok(transaction);
         }
 
+        [Authorize]
         [HttpGet("paged/{page:int}&{pageSize:int}")]
         public async Task<IActionResult> GetAllTransactionsPagedAsync([FromRoute] int page, [FromRoute] int pageSize)
         {
@@ -39,6 +44,7 @@ namespace FinanceControl.WebApi.Controllers
             return Ok(response);
         }
 
+        [Authorize]
         [HttpPatch("update-by-id")]
         public async Task<IActionResult> UpdateTransactionAsyncById([FromBody] UpdateTransactionRequestDto requestDto)
         {
@@ -46,6 +52,7 @@ namespace FinanceControl.WebApi.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpDelete("delete-by-id/{transactionId:int}")]
         public async Task<IActionResult> DeleteTransactionById([FromRoute] int transactionId)
         {
