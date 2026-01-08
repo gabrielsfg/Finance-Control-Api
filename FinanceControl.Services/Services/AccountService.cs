@@ -2,6 +2,9 @@
 using FinanceControl.Domain.Entities;
 using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +22,7 @@ namespace FinanceControl.Services.Services
             _context = context;
         }
 
-        public async Task CreateAccountAsync(CreateAccountRequestDto requestDto, int userId)
+        public async Task<Result<GetAllAccountResponseDto>> CreateAccountAsync(CreateAccountRequestDto requestDto, int userId)
         {
             var account = new Account()
             {
@@ -32,6 +35,29 @@ namespace FinanceControl.Services.Services
 
             await _context.Accounts.AddAsync(account);
             await _context.SaveChangesAsync();
+
+            var accounts = await GetAllAccountAsync(userId);
+            return Result<GetAllAccountResponseDto>.Success(accounts);
+        }
+
+        public async Task<GetAllAccountResponseDto> GetAllAccountAsync(int userId)
+        {
+            var accounts = await _context.Accounts
+                .Where(a => a.UserId.Equals(userId))
+                .OrderBy(a => a.Name)
+                .Select(a => new GetAccountItemResponseDto
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    CurrentAmout = a.CurrentBalance
+                })
+                .ToListAsync();
+
+            return new GetAllAccountResponseDto()
+            {
+                Accounts = accounts
+            };
+
         }
     }
 }

@@ -32,8 +32,18 @@ namespace FinanceControl.WebApi.Controllers
 
             var userId = GetUserId();
 
-            await _accountService.CreateAccountAsync(requestDto, userId);
-            return Ok();
+            var result = await _accountService.CreateAccountAsync(requestDto, userId);
+
+            return Created($"/api/accounts", result.Value);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllAccountAsync()
+        {
+            var userId = GetUserId();
+
+            var result = await _accountService.GetAllAccountAsync(userId);
+            return Ok(result);
         }
     }
 }

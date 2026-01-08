@@ -1,4 +1,6 @@
 ﻿using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,7 @@ namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface IAccountService
     {
-        Task CreateAccountAsync(CreateAccountRequestDto requestDto, int userId);
+        Task<Result<GetAllAccountResponseDto>> CreateAccountAsync(CreateAccountRequestDto requestDto, int userId);
+        Task<GetAllAccountResponseDto> GetAllAccountAsync(int userId);
     }
 }
