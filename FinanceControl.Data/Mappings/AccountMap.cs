@@ -9,25 +9,28 @@ using System.Threading.Tasks;
 
 namespace FinanceControl.Data.Mappings
 {
-    public class CategoryMap : IEntityTypeConfiguration<Category>
+    public class AccountMap : IEntityTypeConfiguration<Account>
     {
-        public void Configure(EntityTypeBuilder<Category> builder)
+        public void Configure(EntityTypeBuilder<Account> builder)
         {
-            builder.ToTable("Categories");
-            builder.HasKey(c => c.Id);
-            builder.Property(c => c.Name);
-            builder.Property(c => c.CreatedAt)
+            builder.ToTable("Accounts");
+            builder.HasKey(a => a.Id);
+            builder.Property(a => a.Name);
+            builder.Property(a => a.CurrentBalance);
+            builder.Property(a => a.GoalAmount);
+            builder.Property(a => a.IsDefaultAccount);
+            builder.Property(a => a.CreatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasDefaultValueSql("timezone('America/Sao_Paulo', now())")
                 .IsRequired()
                 .ValueGeneratedOnAdd();
-            builder.Property(c => c.UpdatedAt)
+            builder.Property(a => a.UpdatedAt)
                 .HasColumnType("timestamp without time zone")
                 .ValueGeneratedOnAdd();
 
             builder.HasOne<User>()
                 .WithMany()
-                .HasForeignKey(c => c.UserId)
+                .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
