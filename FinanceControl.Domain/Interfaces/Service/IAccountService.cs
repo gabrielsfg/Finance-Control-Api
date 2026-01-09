@@ -13,5 +13,8 @@ namespace FinanceControl.Domain.Interfaces.Service
     {
         Task<Result<GetAllAccountResponseDto>> CreateAccountAsync(CreateAccountRequestDto requestDto, int userId);
         Task<GetAllAccountResponseDto> GetAllAccountAsync(int userId);
+        Task<GetAccountByIdResponseDto> GetAccountByIdAsync(int id, int userId);
+        Task<Result<GetAllAccountResponseDto>> UpdateAccountAsync(UpdateAccountRequestDto requestDto, int userId);
+        Task<Result<GetAllAccountResponseDto>> DeleteAccountByIdAsync(int id, int userId);
     }
 }

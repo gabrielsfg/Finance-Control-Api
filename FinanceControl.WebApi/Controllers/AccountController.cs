@@ -15,12 +15,14 @@ namespace FinanceControl.WebApi.Controllers
     public class AccountController : BaseController
     {
         private readonly IAccountService _accountService;
-        private readonly IValidator<CreateAccountRequestDto> _createAccountValidator; 
+        private readonly IValidator<CreateAccountRequestDto> _createAccountValidator;
+        private readonly IValidator<UpdateAccountRequestDto> _updateAccountValidator;
 
-        public AccountController(IAccountService accountService, IValidator<CreateAccountRequestDto> createAccountValidator)
+        public AccountController(IAccountService accountService, IValidator<CreateAccountRequestDto> createAccountValidator, IValidator<UpdateAccountRequestDto> updateAccountValidator)
         {
             _accountService = accountService;
             _createAccountValidator = createAccountValidator;
+            _updateAccountValidator = updateAccountValidator;
         }
 
         [HttpPost]
@@ -44,6 +46,42 @@ namespace FinanceControl.WebApi.Controllers
 
             var result = await _accountService.GetAllAccountAsync(userId);
             return Ok(result);
+        }
+
+        [HttpGet("{id: int")]
+        public async Task<IActionResult> GetAccountByIdAsync([FromRoute] int id)
+        {
+            var userId = GetUserId();
+            var result = await _accountService.GetAccountByIdAsync(id, userId);
+
+            if(result == null)
+                return NotFound("Account not found.");
+
+            return Ok(result);
+        }
+
+        [HttpPatch]
+        public async Task<IActionResult> UpdateAccountAsync([FromBody] UpdateAccountRequestDto requestDto)
+        {
+            var validatorResult = _updateAccountValidator.Validate(requestDto);
+            if (validatorResult.ToActionResult() is { } errorResult)
+                return errorResult;
+
+            var userId = GetUserId();
+            var result = await _accountService.UpdateAccountAsync(requestDto, userId);
+
+            if(result.IsFailure)
+                return NotFound(new { error = result.Error });
+
+            return Ok(result.Value);
+        }
+
+        [HttpDelete("{id: int}")]
+        public async Task<IActionResult> DeleteAccountByIdAsync([FromQuery]int id)
+        {
+            var userId = GetUserId();
+            var result = await _accountService.DeleteAccountByIdAsync(id, userId);
+            return Ok(result.Value);
         }
     }
 }

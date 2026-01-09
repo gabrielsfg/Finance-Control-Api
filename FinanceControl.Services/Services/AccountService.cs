@@ -4,6 +4,7 @@ using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Respose;
 using FinanceControl.Shared.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -57,7 +58,54 @@ namespace FinanceControl.Services.Services
             {
                 Accounts = accounts
             };
+        }
 
+        public async Task<GetAccountByIdResponseDto> GetAccountByIdAsync(int id, int userId)
+        {
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId.Equals(userId) && a.Id.Equals(id));
+
+            if (account == null)
+                return null;
+
+            return new GetAccountByIdResponseDto()
+            {
+                Id = account.Id,
+                Name = account.Name,
+                CurrentAmount = account.CurrentBalance,
+                GoalAmount = account.GoalAmount,
+                IsDefaultAccount = account.IsDefaultAccount
+            };
+        }
+
+        public async Task<Result<GetAllAccountResponseDto>> UpdateAccountAsync(UpdateAccountRequestDto requestDto, int userId)
+        {
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId.Equals(userId) && a.Id.Equals(requestDto.Id));
+
+            if (account == null)
+                return Result<GetAllAccountResponseDto>.Failure("Account not found.");
+
+            account.Name = requestDto.Name;
+            account.CurrentBalance = requestDto.CurrentBalance;
+            account.GoalAmount = requestDto.GoalAmount;
+            account.IsDefaultAccount = requestDto.IsDefaultAccount;
+            
+            await  _context.SaveChangesAsync();
+            var accounts = await GetAllAccountAsync(userId);
+            return Result<GetAllAccountResponseDto>.Success(accounts);
+        }
+
+        public async Task<Result<GetAllAccountResponseDto>> DeleteAccountByIdAsync(int id, int userId)
+        {
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId.Equals(userId) && a.Id.Equals(id));
+
+            if (account == null)
+                return Result<GetAllAccountResponseDto>.Failure("Account not found.");
+
+            _context.Remove(account);
+            await _context.SaveChangesAsync();
+
+            var accounts = await GetAllAccountAsync(userId);
+            return Result<GetAllAccountResponseDto>.Success(accounts);
         }
     }
 }
