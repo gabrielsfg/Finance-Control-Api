@@ -20,6 +20,7 @@ namespace FinanceControl.Data.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Budget> Budgets { get; set; } 
+        public DbSet<SubCategory> SubCategories { get; set; }
 
         public override int SaveChanges()
         {
