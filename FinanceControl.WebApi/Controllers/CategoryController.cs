@@ -38,8 +38,7 @@ namespace FinanceControl.WebApi.Controllers
 
             var result = await _categoryService.CreateCategoryAsync(requestDto, userId);
 
-            return Created($"/api/categories/{result.Value!.Id}", result.Value);
-
+            return Ok(result.Value);
         }
 
         
@@ -47,7 +46,8 @@ namespace FinanceControl.WebApi.Controllers
         public async Task<IActionResult> GetAllCategoriesAsync()
         {
             var userId = GetUserId();
-            var result = await _categoryService.GetCategoriesAsync(userId);
+
+            var result = await _categoryService.GetAllCategoriesAsync(userId);
             return Ok(result);
         }
 

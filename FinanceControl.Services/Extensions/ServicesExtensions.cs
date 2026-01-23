@@ -13,7 +13,6 @@ namespace FinanceControl.Services.Extensions
     {
         public static IServiceCollection AddAplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IAccountService, AccountService>();

@@ -12,10 +12,10 @@ namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface ICategoryService
     {
-        Task<Result<CategoryResponseDto>> CreateCategoryAsync(CreateCategoryRequestDto requestDto, int userId);
-        Task<GetCategoriesResponseDto> GetCategoriesAsync(int userId);
-        Task<Result<GetCategoriesResponseDto>> UpdateCategoryByIdAsync(UpdateCategoryRequestDto requestDto, int userId);
-        Task<Result<GetCategoriesResponseDto>> DeleteCategoryByIdAsync(int id, int userId);
+        Task<Result<IEnumerable<CategoryResponseDto>>> CreateCategoryAsync(CreateCategoryRequestDto requestDto, int userId);
+        Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync(int userId);
+        Task<Result<IEnumerable<CategoryResponseDto>>> UpdateCategoryByIdAsync(UpdateCategoryRequestDto requestDto, int userId);
+        Task<Result<IEnumerable<CategoryResponseDto>>> DeleteCategoryByIdAsync(int id, int userId);
 
     }
 }

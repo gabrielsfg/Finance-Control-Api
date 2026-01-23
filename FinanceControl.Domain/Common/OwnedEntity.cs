@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FinanceControl.Shared.Helpers
+namespace FinanceControl.Domain.Common
 {
     public class OwnedEntity : BaseEntity
     {

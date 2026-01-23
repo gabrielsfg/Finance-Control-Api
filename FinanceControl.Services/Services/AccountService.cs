@@ -23,7 +23,7 @@ namespace FinanceControl.Services.Services
             _context = context;
         }
 
-        public async Task<Result<GetAllAccountResponseDto>> CreateAccountAsync(CreateAccountRequestDto requestDto, int userId)
+        public async Task<Result<IEnumerable<GetAccountItemResponseDto>>> CreateAccountAsync(CreateAccountRequestDto requestDto, int userId)
         {
             var account = new Account()
             {
@@ -50,10 +50,10 @@ namespace FinanceControl.Services.Services
             await _context.SaveChangesAsync();
 
             var accounts = await GetAllAccountAsync(userId);
-            return Result<GetAllAccountResponseDto>.Success(accounts);
+            return Result<IEnumerable<GetAccountItemResponseDto>>.Success(accounts);
         }
 
-        public async Task<GetAllAccountResponseDto> GetAllAccountAsync(int userId)
+        public async Task<IEnumerable<GetAccountItemResponseDto>> GetAllAccountAsync(int userId)
         {
             var accounts = await _context.Accounts
                 .Where(a => a.UserId == userId)
@@ -67,10 +67,7 @@ namespace FinanceControl.Services.Services
                 })
                 .ToListAsync();
 
-            return new GetAllAccountResponseDto()
-            {
-                Accounts = accounts
-            };
+            return accounts;
         }
 
         public async Task<GetAccountByIdResponseDto> GetAccountByIdAsync(int id, int userId)
@@ -90,12 +87,12 @@ namespace FinanceControl.Services.Services
             };
         }
 
-        public async Task<Result<GetAllAccountResponseDto>> UpdateAccountAsync(UpdateAccountRequestDto requestDto, int userId)
+        public async Task<Result<IEnumerable<GetAccountItemResponseDto>>> UpdateAccountAsync(UpdateAccountRequestDto requestDto, int userId)
         {
             var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId && a.Id == requestDto.Id);
 
             if (account == null)
-                return Result<GetAllAccountResponseDto>.Failure("Account not found.");
+                return Result<IEnumerable<GetAccountItemResponseDto>>.Failure("Account not found.");
 
             account.Name = requestDto.Name;
             account.CurrentBalance = requestDto.CurrentBalance;
@@ -104,21 +101,21 @@ namespace FinanceControl.Services.Services
             
             await  _context.SaveChangesAsync();
             var accounts = await GetAllAccountAsync(userId);
-            return Result<GetAllAccountResponseDto>.Success(accounts);
+            return Result<IEnumerable<GetAccountItemResponseDto>>.Success(accounts);
         }
 
-        public async Task<Result<GetAllAccountResponseDto>> DeleteAccountByIdAsync(int id, int userId)
+        public async Task<Result<IEnumerable<GetAccountItemResponseDto>>> DeleteAccountByIdAsync(int id, int userId)
         {
             var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId && a.Id == id);
 
             if (account == null)
-                return Result<GetAllAccountResponseDto>.Failure("Account not found.");
+                return Result<IEnumerable<GetAccountItemResponseDto>>.Failure("Account not found.");
 
             _context.Remove(account);
             await _context.SaveChangesAsync();
 
             var accounts = await GetAllAccountAsync(userId);
-            return Result<GetAllAccountResponseDto>.Success(accounts);
+            return Result<IEnumerable<GetAccountItemResponseDto>>.Success(accounts);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace FinanceControl.Data.Mappings
     {
         void IEntityTypeConfiguration<Area>.Configure(EntityTypeBuilder<Area> builder)
         {
-            builder.ToTable("Areas", "gcb");
+            builder.ToTable("Areas");
             builder.HasKey(a => a.Id);
             builder.Property(a => a.Name);
             builder.Property(a => a.CreatedAt)

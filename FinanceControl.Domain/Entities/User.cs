@@ -1,9 +1,4 @@
-﻿using FinanceControl.Shared.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FinanceControl.Domain.Common;
 
 namespace FinanceControl.Domain.Entities
 {

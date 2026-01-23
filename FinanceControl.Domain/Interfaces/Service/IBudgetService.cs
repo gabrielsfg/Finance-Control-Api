@@ -11,10 +11,10 @@ namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface IBudgetService
     {
-        Task<Result<int>> CreateBudgetAsync(CreateBudgetResquestDto requestDto, int userId);
-        Task<List<GetAllBudgetResponseDto>> GetAllBudgetAsync(int userId);
+        Task<Result<GetBudgetByIdResponseDto>> CreateBudgetAsync(CreateBudgetResquestDto requestDto, int userId);
+        Task<IEnumerable<GetAllBudgetResponseDto>> GetAllBudgetAsync(int userId);
         Task<GetBudgetByIdResponseDto> GetBudgetByIdAsync(int id, int userId);
         Task<Result<GetBudgetByIdResponseDto>> UpdateBudgetAsync(UpdateBudgetRequestDto requestDto, int userId);
-        Task<Result<List<GetAllBudgetResponseDto>>> DeleteBudgetAsync(int id, int userId);
+        Task<Result<IEnumerable<GetAllBudgetResponseDto>>> DeleteBudgetAsync(int id, int userId);
     }
 }

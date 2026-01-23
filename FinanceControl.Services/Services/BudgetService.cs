@@ -23,7 +23,7 @@ namespace FinanceControl.Services.Services
             _context = context;
         }
 
-        public async Task<Result<int>> CreateBudgetAsync(CreateBudgetResquestDto requestDto, int userId)
+        public async Task<Result<GetBudgetByIdResponseDto>> CreateBudgetAsync(CreateBudgetResquestDto requestDto, int userId)
         {
             Budget budget = new Budget
             {
@@ -36,10 +36,12 @@ namespace FinanceControl.Services.Services
             await _context.Budgets.AddAsync(budget);
             await _context.SaveChangesAsync();
 
-            return Result<int>.Success(budget.Id);
+            var result = await GetBudgetByIdAsync(budget.Id, userId);
+
+            return Result<GetBudgetByIdResponseDto>.Success(result);
         }
 
-        public async Task<List<GetAllBudgetResponseDto>> GetAllBudgetAsync(int userId)
+        public async Task<IEnumerable<GetAllBudgetResponseDto>> GetAllBudgetAsync(int userId)
         {
             var budgets = await _context.Budgets.Where(b => b.UserId == userId).Select(b => new GetAllBudgetResponseDto
             {
@@ -96,19 +98,19 @@ namespace FinanceControl.Services.Services
             return Result<GetBudgetByIdResponseDto>.Success(budgetResult);
         }
 
-        public async Task<Result<List<GetAllBudgetResponseDto>>> DeleteBudgetAsync(int id, int userId)
+        public async Task<Result<IEnumerable<GetAllBudgetResponseDto>>> DeleteBudgetAsync(int id, int userId)
         {
             var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.UserId == userId && b.Id == id);
 
             if(budget == null)
-                return Result<List<GetAllBudgetResponseDto>>.Failure("Budget not found.");
+                return Result<IEnumerable<GetAllBudgetResponseDto>>.Failure("Budget not found.");
 
             _context.Remove(budget);
             await _context.SaveChangesAsync();
 
             var budgets = await GetAllBudgetAsync(userId);
 
-            return Result<List<GetAllBudgetResponseDto>>.Success(budgets);
+            return Result<IEnumerable<GetAllBudgetResponseDto>>.Success(budgets);
         }
     }
 }

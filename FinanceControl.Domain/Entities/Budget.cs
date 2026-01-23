@@ -1,10 +1,5 @@
-﻿using FinanceControl.Domain.Enums;
-using FinanceControl.Shared.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FinanceControl.Domain.Common;
+using FinanceControl.Domain.Enums;
 
 namespace FinanceControl.Domain.Entities
 {

@@ -1,11 +1,6 @@
 ﻿using FinanceControl.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FinanceControl.Shared.Helpers;
+using FinanceControl.Domain.Common;
 
 namespace FinanceControl.Data.Data
 {
@@ -15,7 +10,6 @@ namespace FinanceControl.Data.Data
         {
         }
 
-        public DbSet<Transaction> Transactions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Account> Accounts { get; set; }

@@ -11,10 +11,10 @@ namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface IAccountService
     {
-        Task<Result<GetAllAccountResponseDto>> CreateAccountAsync(CreateAccountRequestDto requestDto, int userId);
-        Task<GetAllAccountResponseDto> GetAllAccountAsync(int userId);
+        Task<Result<IEnumerable<GetAccountItemResponseDto>>> CreateAccountAsync(CreateAccountRequestDto requestDto, int userId);
+        Task<IEnumerable<GetAccountItemResponseDto>> GetAllAccountAsync(int userId);
         Task<GetAccountByIdResponseDto> GetAccountByIdAsync(int id, int userId);
-        Task<Result<GetAllAccountResponseDto>> UpdateAccountAsync(UpdateAccountRequestDto requestDto, int userId);
-        Task<Result<GetAllAccountResponseDto>> DeleteAccountByIdAsync(int id, int userId);
+        Task<Result<IEnumerable<GetAccountItemResponseDto>>> UpdateAccountAsync(UpdateAccountRequestDto requestDto, int userId);
+        Task<Result<IEnumerable<GetAccountItemResponseDto>>> DeleteAccountByIdAsync(int id, int userId);
     }
 }
