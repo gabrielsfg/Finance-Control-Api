@@ -2,6 +2,8 @@
 using FinanceControl.Services.Extensions;
 using FinanceControl.Services.Validations;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.WebApi.Controllers.Base;
+using FinanceControl.WebApi.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -28,8 +30,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateBudgetAsync([FromBody] CreateBudgetResquestDto requestDto)
         {
-            var validatorResult = _createBudgetValidator.Validate(requestDto);
-            if (validatorResult.ToActionResult() is { } errorResult)
+            var validatonResult = _createBudgetValidator.Validate(requestDto);
+            if (validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -51,6 +53,10 @@ namespace FinanceControl.WebApi.Controllers
         [HttpGet("by-id/{id:int}")]
         public async Task<IActionResult> GetBudgetByIdAsync([FromRoute]int id)
         {
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
+
             var userId = GetUserId();
             var result = await _budgetService.GetBudgetByIdAsync(id, userId);
 
@@ -62,9 +68,9 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPatch]
         public async Task<IActionResult> UpdateBudgetAsync([FromBody]UpdateBudgetRequestDto requestDto)
         {
-            var validatorResult = _updateBudgetValidator.Validate(requestDto);
+            var validatonResult = _updateBudgetValidator.Validate(requestDto);
 
-            if (validatorResult.ToActionResult() is { } errorResult)
+            if (validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -79,6 +85,10 @@ namespace FinanceControl.WebApi.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteBudgetAsync([FromRoute]int id)
         {
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
+
             var userId = GetUserId();
             var result = await _budgetService.DeleteBudgetAsync(id, userId);
 

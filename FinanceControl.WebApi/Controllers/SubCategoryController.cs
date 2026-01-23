@@ -2,6 +2,8 @@
 using FinanceControl.Services.Extensions;
 using FinanceControl.Services.Services;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.WebApi.Controllers.Base;
+using FinanceControl.WebApi.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -30,8 +32,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateSubCategoryAsync([FromBody] CreateSubCategoryRequestDto requestDto)
         {
-            var validatorResult = _createSubCategoryValidator.Validate(requestDto);
-            if(validatorResult.ToActionResult() is { } errorResult)
+            var validatonResult = _createSubCategoryValidator.Validate(requestDto);
+            if(validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -56,6 +58,10 @@ namespace FinanceControl.WebApi.Controllers
         [HttpGet("by-id/{id:int}")]
         public async Task<IActionResult> GetSubCategoryByIdAsync([FromRoute]int id)
         {
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
+
             var userId = GetUserId();
 
             var result = await _subCategoryService.GetSubCategoryByIdAsync(id, userId);
@@ -69,8 +75,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPatch]
         public async Task<IActionResult> UpdateSubCategoryAsync([FromBody]UpdateSubCategoryRequestDto requestDto)
         {
-            var validatorResult = _updateSubCategoryValidator.Validate(requestDto);
-            if (validatorResult.ToActionResult() is { } errorResult)
+            var validatonResult = _updateSubCategoryValidator.Validate(requestDto);
+            if (validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -86,6 +92,10 @@ namespace FinanceControl.WebApi.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteSubCategoryAsync([FromRoute] int id)
         {
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
+
             var userId = GetUserId();
             var result = await _subCategoryService.DeleteSubCategoryAsync(id, userId);
 

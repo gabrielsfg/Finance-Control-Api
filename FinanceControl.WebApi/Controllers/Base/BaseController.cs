@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace FinanceControl.WebApi.Controllers
+namespace FinanceControl.WebApi.Controllers.Base
 {
     [ApiController]
     public class BaseController : ControllerBase

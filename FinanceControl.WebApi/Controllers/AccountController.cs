@@ -2,6 +2,8 @@
 using FinanceControl.Services.Extensions;
 using FinanceControl.Services.Validations;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.WebApi.Controllers.Base;
+using FinanceControl.WebApi.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,8 +30,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAccountAsync([FromBody]CreateAccountRequestDto requestDto)
         {
-            var validatorResult = _createAccountValidator.Validate(requestDto);
-            if (validatorResult.ToActionResult() is { } errorResult)
+            var validatonResult = _createAccountValidator.Validate(requestDto);
+            if (validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -51,6 +53,10 @@ namespace FinanceControl.WebApi.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetAccountByIdAsync([FromRoute] int id)
         {
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
+
             var userId = GetUserId();
             var result = await _accountService.GetAccountByIdAsync(id, userId);
 
@@ -63,8 +69,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPatch]
         public async Task<IActionResult> UpdateAccountAsync([FromBody] UpdateAccountRequestDto requestDto)
         {
-            var validatorResult = _updateAccountValidator.Validate(requestDto);
-            if (validatorResult.ToActionResult() is { } errorResult)
+            var validatonResult = _updateAccountValidator.Validate(requestDto);
+            if (validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -79,6 +85,10 @@ namespace FinanceControl.WebApi.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteAccountByIdAsync([FromRoute]int id)
         {
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
+
             var userId = GetUserId();
             var result = await _accountService.DeleteAccountByIdAsync(id, userId);
 
