@@ -86,13 +86,13 @@ namespace FinanceControl.Services.Services
 
         private async Task<bool> ValidateAreaByUserIdAsync(int areaId, int userId)
         {
-            var result = await _context.Areas.Where(a => a.Id.Equals(areaId) && a.UserId.Equals(userId)).AnyAsync();
+            var result = await _context.Areas.Where(a => a.Id == areaId && a.UserId == userId).AnyAsync();
             return result;
         }
 
         private async Task<bool> ValidateCategoryByUserIdAsync(int categoryId, int userId)
         {
-            var result = await _context.Categories.Where(c => c.Id.Equals(categoryId) && c.UserId.Equals(userId)).AnyAsync();
+            var result = await _context.Categories.Where(c => c.Id == categoryId && c.UserId == userId).AnyAsync();
             return result;
         }
 

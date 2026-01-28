@@ -15,8 +15,6 @@ namespace FinanceControl.Data.Mappings
         {
             builder.ToTable("BudgetSubcategoryAllocations");
             builder.HasKey(bsa => bsa.Id);
-            builder.Property(bsa => bsa.BudgetId);
-            builder.Property(bsa => bsa.AreaId);
             builder.Property(bsa => bsa.SubCategoryId);
             builder.Property(bsa => bsa.ExpectedValue);
             builder.Property(bsa => bsa.CreatedAt)
@@ -29,8 +27,19 @@ namespace FinanceControl.Data.Mappings
                 .ValueGeneratedOnAdd();
 
             builder.HasOne(bsa => bsa.Budget)
-                .WithMany()
-                .HasForeignKey()
+                .WithMany(b => b.BudgetSubcategoryAllocations)
+                .HasForeignKey(bsa => bsa.BudgetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(bsa => bsa.Area)
+                .WithMany(a => a.BudgetSubcategoryAllocations)
+                .HasForeignKey(bsa => bsa.AreaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(bsa => bsa.SubCategory)
+                .WithMany(sc => sc.BudgetSubcategoryAllocations)
+                .HasForeignKey(bsa => bsa.SubCategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace FinanceControl.Services.Extensions
             services.AddScoped<ISubCategoryService, SubCategoryService>();
             services.AddScoped<IAreaService, AreaService>();
             services.AddScoped<IAreaCategoryService, AreaCategoryService>();
+            services.AddScoped<IBudgetSubCategoryAllocationService, BudgetSubCategoryAllocationService>();
 
             return services;
         }

@@ -30,8 +30,8 @@ namespace FinanceControl.Data.Mappings
                 .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne<Category>()
-                .WithMany()
+            builder.HasOne(s => s.Category)
+                .WithMany(c  => c.SubCategories)
                 .HasForeignKey(s => s.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

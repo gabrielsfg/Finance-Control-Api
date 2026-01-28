@@ -6,6 +6,6 @@ namespace FinanceControl.Domain.Entities
     {
         public string Name { get; set; }
         public ICollection<AreaCategory> AreaCategories { get; set; } = [];
-
+        public ICollection<SubCategory> SubCategories { get; set; } = [];
     }
 }

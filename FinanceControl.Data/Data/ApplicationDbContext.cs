@@ -17,6 +17,7 @@ namespace FinanceControl.Data.Data
         public DbSet<SubCategory> SubCategories { get; set; }
         public DbSet<Area> Areas { get; set; }
         public DbSet<AreaCategory> AreaCategories { get; set; }
+        public DbSet<BudgetSubcategoryAllocation> BudgetSubcategoryAllocations { get; set; }
 
         public override int SaveChanges()
         {

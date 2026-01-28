@@ -6,5 +6,7 @@ namespace FinanceControl.Domain.Entities
     {
         public int CategoryId { get; set; }
         public string Name { get; set; }
+        public Category Category { get; set; }
+        public ICollection<BudgetSubcategoryAllocation> BudgetSubcategoryAllocations { get; set; } = []; 
     }
 }
