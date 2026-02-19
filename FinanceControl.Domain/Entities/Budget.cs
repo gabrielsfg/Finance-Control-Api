@@ -10,6 +10,8 @@ namespace FinanceControl.Domain.Entities
         public EnumBudgetRecurrence Reccurrence { get; set; }
 
         public ICollection<BudgetSubcategoryAllocation> BudgetSubcategoryAllocations { get; set; } = [];
+        public ICollection<Transaction> Transactions { get; set; } = [];
+        public ICollection<RecurringTransaction> RecurringTransactions { get; set; } = [];
 
     }
 }
