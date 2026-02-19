@@ -45,9 +45,9 @@ namespace FinanceControl.Data.Mappings
                 .HasForeignKey(rt => rt.BudgetId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.HasOne(rt => rt.Subcategory)
+            builder.HasOne(rt => rt.SubCategory)
                 .WithMany(s => s.RecurringTransactions)
-                .HasForeignKey(rt => rt.SubcategoryId)
+                .HasForeignKey(rt => rt.SubCategoryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(rt => rt.Account)

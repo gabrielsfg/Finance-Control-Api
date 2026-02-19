@@ -11,7 +11,7 @@ namespace FinanceControl.Domain.Entities
     public class Transaction : OwnedEntity
     {
         public int? BudgetId { get; set; }
-        public int SubcategoryId { get; set; }
+        public int SubCategoryId { get; set; }
         public int AccountId { get; set; }
         public int? RecurringTransactionId { get; set; }
         public int? ParentTransactionId { get; set; }
@@ -24,7 +24,7 @@ namespace FinanceControl.Domain.Entities
         public int? TotalInstallments { get; set; }
         public bool IsPaid { get; set; }
         public Budget? Budget { get; set; }
-        public SubCategory Subcategory { get; set; }
+        public SubCategory SubCategory { get; set; }
         public Account Account { get; set; }
         public RecurringTransaction? RecurringTransaction { get; set; }
         public Transaction? ParentTransaction { get; set; }
