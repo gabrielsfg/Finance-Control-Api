@@ -3,6 +3,7 @@ using System;
 using FinanceControl.Data.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinanceControl.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219130201_TransactionTable")]
+    partial class TransactionTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -275,7 +278,7 @@ namespace FinanceControl.Data.Migrations
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
 
-                    b.Property<int>("SubCategoryId")
+                    b.Property<int>("SubcategoryId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Type")
@@ -298,7 +301,7 @@ namespace FinanceControl.Data.Migrations
 
                     b.HasIndex("BudgetId");
 
-                    b.HasIndex("SubCategoryId");
+                    b.HasIndex("SubcategoryId");
 
                     b.HasIndex("UserId");
 
@@ -380,7 +383,7 @@ namespace FinanceControl.Data.Migrations
                     b.Property<int?>("RecurringTransactionId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SubCategoryId")
+                    b.Property<int>("SubcategoryId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("TotalInstallments")
@@ -413,7 +416,7 @@ namespace FinanceControl.Data.Migrations
 
                     b.HasIndex("RecurringTransactionId");
 
-                    b.HasIndex("SubCategoryId");
+                    b.HasIndex("SubcategoryId");
 
                     b.HasIndex("UserId");
 
@@ -560,9 +563,9 @@ namespace FinanceControl.Data.Migrations
                         .HasForeignKey("BudgetId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("FinanceControl.Domain.Entities.SubCategory", "SubCategory")
+                    b.HasOne("FinanceControl.Domain.Entities.SubCategory", "Subcategory")
                         .WithMany("RecurringTransactions")
-                        .HasForeignKey("SubCategoryId")
+                        .HasForeignKey("SubcategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -576,7 +579,7 @@ namespace FinanceControl.Data.Migrations
 
                     b.Navigation("Budget");
 
-                    b.Navigation("SubCategory");
+                    b.Navigation("Subcategory");
                 });
 
             modelBuilder.Entity("FinanceControl.Domain.Entities.SubCategory", b =>
@@ -619,9 +622,9 @@ namespace FinanceControl.Data.Migrations
                         .HasForeignKey("RecurringTransactionId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("FinanceControl.Domain.Entities.SubCategory", "SubCategory")
+                    b.HasOne("FinanceControl.Domain.Entities.SubCategory", "Subcategory")
                         .WithMany("Transactions")
-                        .HasForeignKey("SubCategoryId")
+                        .HasForeignKey("SubcategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -639,7 +642,7 @@ namespace FinanceControl.Data.Migrations
 
                     b.Navigation("RecurringTransaction");
 
-                    b.Navigation("SubCategory");
+                    b.Navigation("Subcategory");
                 });
 
             modelBuilder.Entity("FinanceControl.Domain.Entities.Account", b =>

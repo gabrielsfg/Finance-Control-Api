@@ -1,4 +1,5 @@
 ﻿using FinanceControl.Domain.Interfaces.Service;
+using FinanceControl.Domain.Interfaces.Services;
 using FinanceControl.Services.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -21,6 +22,7 @@ namespace FinanceControl.Services.Extensions
             services.AddScoped<IAreaService, AreaService>();
             services.AddScoped<IAreaCategoryService, AreaCategoryService>();
             services.AddScoped<IBudgetSubCategoryAllocationService, BudgetSubCategoryAllocationService>();
+            services.AddScoped<ITransactionService, TransactionService>();
 
             return services;
         }

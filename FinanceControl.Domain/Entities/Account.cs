@@ -9,5 +9,7 @@ namespace FinanceControl.Domain.Entities
         public int CurrentBalance { get; set; }
         public int? GoalAmount {  get; set; }
         public bool IsDefaultAccount { get; set; }
+        public ICollection<Transaction> Transactions { get; set; } = [];
+        public ICollection<RecurringTransaction> RecurringTransactions { get; set; } = [];
     }
 }

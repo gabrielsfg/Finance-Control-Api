@@ -18,6 +18,8 @@ namespace FinanceControl.Data.Data
         public DbSet<Area> Areas { get; set; }
         public DbSet<AreaCategory> AreaCategories { get; set; }
         public DbSet<BudgetSubcategoryAllocation> BudgetSubcategoryAllocations { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<RecurringTransaction> RecurringTransactions { get; set; }
 
         public override int SaveChanges()
         {

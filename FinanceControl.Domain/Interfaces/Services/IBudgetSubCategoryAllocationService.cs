@@ -16,7 +16,5 @@ namespace FinanceControl.Domain.Interfaces.Service
         Task<Result<IEnumerable<GetAllSubCategoryAllocationByAreaResponseDto>>> GetAllSubCategoryAllocationByBudgetAsync(int budgetId, int userId);
         Task<Result<IEnumerable<GetAllSubCategoryAllocationByAreaResponseDto>>> RemoveSubCategoryFromBudgetAsync(int allocationId, int budgetId, int userId);
         Task<Result<IEnumerable<GetAllSubCategoryAllocationByAreaResponseDto>>> UpdateBudgetSubCategoryAllocationAsync(UpdateSubCategoryToBudgetRequestDto requestDto, int Id, int budgetId, int userId);
-        
-
     }
 }
