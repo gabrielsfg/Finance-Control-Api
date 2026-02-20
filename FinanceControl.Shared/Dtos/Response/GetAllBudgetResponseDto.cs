@@ -10,6 +10,6 @@ namespace FinanceControl.Shared.Dtos.Respose
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public string Reccurrence { get; set; }
+        public string Recurrence { get; set; }
     }
 }

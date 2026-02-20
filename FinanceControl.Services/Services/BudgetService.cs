@@ -29,7 +29,7 @@ namespace FinanceControl.Services.Services
             {
                 Name = requestDto.Name,
                 StartDate = requestDto.StartDate,
-                Reccurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Reccurrence, ignoreCase: true),
+                Recurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Recurrence, ignoreCase: true),
                 UserId = userId,
             };
 
@@ -47,7 +47,7 @@ namespace FinanceControl.Services.Services
             {
                 Id = b.Id,
                 Name = b.Name,
-                Reccurrence = b.Reccurrence.ToString()
+                Recurrence = b.Recurrence.ToString()
             }).ToListAsync();
 
             return budgets;
@@ -62,13 +62,13 @@ namespace FinanceControl.Services.Services
 
             var startDate = new DateOnly(DateTime.Now.Year, DateTime.Now.Month, budget.StartDate);
 
-            var finishDate = budget.Reccurrence switch
+            var finishDate = budget.Recurrence switch
             {
                 EnumBudgetRecurrence.Weekly => startDate.AddDays(7),
-                EnumBudgetRecurrence.Biweekley => startDate.AddDays(14),
+                EnumBudgetRecurrence.Biweekly => startDate.AddDays(14),
                 EnumBudgetRecurrence.Monthly => startDate.AddMonths(1),
                 EnumBudgetRecurrence.Semiannually => startDate.AddMonths(6),
-                EnumBudgetRecurrence.Annualy => startDate.AddYears(1),
+                EnumBudgetRecurrence.Annually => startDate.AddYears(1),
                 _ => startDate
             };
 
@@ -78,7 +78,7 @@ namespace FinanceControl.Services.Services
                 Name = budget.Name,
                 StartDate = startDate,
                 FinishDate = finishDate,
-                Reccurence = budget.Reccurrence.ToString()
+                Reccurence = budget.Recurrence.ToString()
             };
         }
 
@@ -91,7 +91,7 @@ namespace FinanceControl.Services.Services
 
             budget.Name = requestDto.Name;
             budget.StartDate = requestDto.StartDate;
-            budget.Reccurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Reccurrence, ignoreCase: true);
+            budget.Recurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Recurrence, ignoreCase: true);
 
             await _context.SaveChangesAsync();
             var budgetResult = await GetBudgetByIdAsync(requestDto.Id, userId);

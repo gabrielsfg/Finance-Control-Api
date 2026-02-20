@@ -62,7 +62,7 @@ namespace FinanceControl.Services.Services
                 {
                     Id = a.Id,
                     Name = a.Name,
-                    CurrentAmout = a.CurrentBalance,
+                    CurrentAmount = a.CurrentBalance,
                     IsDefaultAccount = a.IsDefaultAccount
                 })
                 .ToListAsync();

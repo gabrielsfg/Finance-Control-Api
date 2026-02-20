@@ -16,7 +16,7 @@ namespace FinanceControl.Data.Mappings
             builder.ToTable("Budgets");
             builder.HasKey(b => b.Id);
             builder.Property(b => b.StartDate);
-            builder.Property(b => b.Reccurrence)
+            builder.Property(b => b.Recurrence)
                 .HasConversion<string>();
             builder.Property(b => b.CreatedAt)
                             .HasColumnType("timestamp without time zone")
