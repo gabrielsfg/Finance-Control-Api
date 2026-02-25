@@ -15,7 +15,7 @@ namespace FinanceControl.Services.Validations
         {
             RuleFor(b => b.Name).NotEmpty().WithMessage("Name is required");
             RuleFor(b => b.StartDate).LessThanOrEqualTo(31).GreaterThan(0).WithMessage("Start date must be a valid Day");
-            RuleFor(b => b.Reccurrence)
+            RuleFor(b => b.Recurrence)
                 .IsEnumName(typeof(EnumBudgetRecurrence), caseSensitive: false)
                 .WithMessage($"Recurrence must be one of: {string.Join(", ", Enum.GetNames<EnumBudgetRecurrence>())}");
         }

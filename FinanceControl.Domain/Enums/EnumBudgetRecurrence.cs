@@ -9,9 +9,9 @@ namespace FinanceControl.Domain.Enums
     public enum EnumBudgetRecurrence
     {
         Weekly,
-        Biweekley,
+        Biweekly,
         Monthly,
         Semiannually,
-        Annualy
+        Annually
     }
 }
