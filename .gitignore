@@ -85,3 +85,6 @@ nunit-*.xml
 ## Build results
 [Bb]in/
 [Oo]bj/
+
+# Claude
+.claude/
