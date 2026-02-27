@@ -2,8 +2,10 @@
 using FinanceControl.Domain.Entities;
 using FinanceControl.Domain.Enums;
 using FinanceControl.Domain.Interfaces.Services;
+using FinanceControl.Shared.Dtos.Others;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Response;
+using FinanceControl.Shared.Helpers;
 using FinanceControl.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,10 +19,12 @@ namespace FinanceControl.Services.Services
     public class TransactionService : ITransactionService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-        public TransactionService(ApplicationDbContext context)
+        public TransactionService(ApplicationDbContext context, IDbContextFactory<ApplicationDbContext> contextFactory)
         {
             _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<Result<CreateTransactionResponseDto>> CreateTransactionAsync(CreateTransactionRequestDto requestDto, int userId)
@@ -270,6 +274,110 @@ namespace FinanceControl.Services.Services
             return await GetAllTransactionsAsync(userId);
         }
 
+        /// <summary>
+        /// Main Page Endpoints
+        /// </summary>
+        public async Task<BalanceSummaryDto> GetSummaryBalanceAsync(MainPageSummaryRequestDto requestDto)
+        {
+            await using var context = _contextFactory.CreateDbContext();
+
+            var result = await context.Transactions
+                    .Where(t => t.UserId == requestDto.UserId)
+                    .WhereIf(requestDto.BudgetId.HasValue, t => t.BudgetId == requestDto.BudgetId)
+                    .Where(t => t.TransactionDate >= requestDto.StartDate && t.TransactionDate <= requestDto.FinishDate)
+                    .GroupBy(_ => 1)
+                    .Select(g => new BalanceSummaryDto
+                    {
+                        TotalIncome = g
+                            .Where(t => t.Type == EnumTransactionType.Income)
+                            .Sum(t => (int?)t.Value) ?? 0,
+                        TotalExpenses = g
+                            .Where(t => t.Type == EnumTransactionType.Expense)
+                            .Sum(t => (int?)t.Value) ?? 0
+                    })
+                    .FirstOrDefaultAsync();
+
+            if (result is null)
+                return new BalanceSummaryDto();
+
+            result.Balance = result.TotalIncome - result.TotalExpenses;
+            return result;
+        }
+
+        public async Task<List<RecentTransactionDto>> GetRecentTransactionsAsync(MainPageSummaryRequestDto requestDto)
+        {
+            await using var context = _contextFactory.CreateDbContext();
+
+            return await context.Transactions
+                .Where(t => t.UserId == requestDto.UserId)
+                .WhereIf(requestDto.BudgetId.HasValue, t => t.BudgetId == requestDto.BudgetId)
+                .Where(t => t.TransactionDate >= requestDto.StartDate && t.TransactionDate <= requestDto.FinishDate)
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.CreatedAt)
+                .Take(5)
+                .Select(t => new RecentTransactionDto
+                {
+                    Id = t.Id,
+                    Description = t.Description,
+                    Value = t.Value,
+                    Type = (int)t.Type,
+                    SubCategoryName = t.SubCategory.Name,
+                    CategoryName = t.SubCategory.Category.Name
+                })
+                .ToListAsync();
+        }
+
+        public async Task<BudgetSummaryDto> GetBudgetSummaryAsync(MainPageSummaryRequestDto requestDto)
+        {
+            await using var context = _contextFactory.CreateDbContext();
+
+            var totalExpected = await context.BudgetSubcategoryAllocations
+                .Where(a => a.Budget.UserId == requestDto.UserId)
+                .WhereIf(requestDto.BudgetId.HasValue, a => a.BudgetId == requestDto.BudgetId)
+                .SumAsync(a => (int?)a.ExpectedValue) ?? 0;
+
+            var totalSpent = await context.Transactions
+                .Where(t => t.UserId == requestDto.UserId)
+                .Where(t => t.Type == EnumTransactionType.Expense)
+                .WhereIf(requestDto.BudgetId.HasValue, t => t.BudgetId == requestDto.BudgetId)
+                .Where(t => t.TransactionDate >= requestDto.StartDate && t.TransactionDate <= requestDto.FinishDate)
+                .SumAsync(t => (int?)t.Value) ?? 0;
+
+            var spentPercentage = totalExpected > 0
+                ? Math.Round((decimal)totalSpent / totalExpected * 100, 2)
+                : 0m;
+
+            return new BudgetSummaryDto
+            {
+                TotalExpected = totalExpected,
+                TotalSpent = totalSpent,
+                SpentPercentage = spentPercentage
+            };
+        }
+
+        public async Task<List<TopCategoryItemDto>> GetTopCategoriesAsync(MainPageSummaryRequestDto requestDto)
+        {
+            await using var context = _contextFactory.CreateDbContext();
+
+            return await context.Transactions
+                .Where(t => t.UserId == requestDto.UserId)
+                .Where(t => t.Type == EnumTransactionType.Expense)
+                .WhereIf(requestDto.BudgetId.HasValue, t => t.BudgetId == requestDto.BudgetId)
+                .Where(t => t.TransactionDate >= requestDto.StartDate && t.TransactionDate <= requestDto.FinishDate)
+                .GroupBy(t => t.SubCategory.Category.Name)
+                .Select(g => new TopCategoryItemDto
+                {
+                    CategoryName = g.Key,
+                    TotalSpent = g.Sum(t => t.Value)
+                })
+                .OrderByDescending(x => x.TotalSpent)
+                .Take(5)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Private methods
+        /// </summary>
         private async Task<List<Transaction>> CreateOneTimeAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type)
         {
             var transaction = new Transaction

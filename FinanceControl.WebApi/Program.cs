@@ -21,11 +21,10 @@ builder.Services.AddAplicationServices();
 //DI Repositories
 
 //Add migration services.
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
-        )
-    );
+        ), ServiceLifetime.Scoped);
 
 // Add services to the container.
 builder.Services.AddControllers();
