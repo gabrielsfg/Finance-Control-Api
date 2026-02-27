@@ -18,6 +18,7 @@ namespace FinanceControl.Data.Mappings
             builder.Property(b => b.StartDate);
             builder.Property(b => b.Recurrence)
                 .HasConversion<string>();
+            builder.Property(b => b.IsActive);
             builder.Property(b => b.CreatedAt)
                             .HasColumnType("timestamp without time zone")
                             .HasDefaultValueSql("timezone('America/Sao_Paulo', now())")
