@@ -308,23 +308,33 @@ namespace FinanceControl.Services.Services
         {
             await using var context = _contextFactory.CreateDbContext();
 
-            return await context.Transactions
+            var transactions = await context.Transactions
                 .Where(t => t.UserId == requestDto.UserId)
                 .WhereIf(requestDto.BudgetId.HasValue, t => t.BudgetId == requestDto.BudgetId)
                 .Where(t => t.TransactionDate >= requestDto.StartDate && t.TransactionDate <= requestDto.FinishDate)
                 .OrderByDescending(t => t.TransactionDate)
                 .ThenByDescending(t => t.CreatedAt)
                 .Take(5)
-                .Select(t => new RecentTransactionDto
+                .Select(t => new
                 {
-                    Id = t.Id,
-                    Description = t.Description,
-                    Value = t.Value,
-                    Type = (int)t.Type,
+                    t.Id,
+                    t.Description,
+                    t.Value,
+                    t.Type,
                     SubCategoryName = t.SubCategory.Name,
                     CategoryName = t.SubCategory.Category.Name
                 })
                 .ToListAsync();
+
+            return transactions.Select(t => new RecentTransactionDto
+            {
+                Id = t.Id,
+                Description = t.Description,
+                Value = t.Value,
+                Type = (int)t.Type,
+                SubCategoryName = t.SubCategoryName,
+                CategoryName = t.CategoryName
+            }).ToList();
         }
 
         public async Task<BudgetSummaryDto> GetBudgetSummaryAsync(MainPageSummaryRequestDto requestDto)
