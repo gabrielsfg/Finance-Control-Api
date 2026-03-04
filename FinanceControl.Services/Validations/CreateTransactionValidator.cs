@@ -61,10 +61,6 @@ namespace FinanceControl.Services.Validations
                 .NotEmpty().WithMessage("Recurrence is required when PaymentType is Recurring.")
                 .When(x => string.Equals(x.PaymentType, nameof(EnumPaymentType.Recurring), StringComparison.OrdinalIgnoreCase));
 
-            RuleFor(x => x.RecurringEndDate)
-                .GreaterThan(x => x.TransactionDate)
-                .WithMessage("RecurringEndDate must be after TransactionDate.")
-                .When(x => x.RecurringEndDate.HasValue);
         }
     }
 }

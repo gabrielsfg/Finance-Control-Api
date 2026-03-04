@@ -31,7 +31,20 @@ namespace FinanceControl.Services.Services
                 StartDate = requestDto.StartDate,
                 Recurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Recurrence, ignoreCase: true),
                 UserId = userId,
+                IsActive = requestDto.IsActive
             };
+
+            var hasAnyBudget = await _context.Budgets.AnyAsync(b => b.UserId == userId);
+            if (!hasAnyBudget)
+            {
+                budget.IsActive = true;
+            }
+            else if (budget.IsActive)
+            {
+                var currentActive = await _context.Budgets.FirstOrDefaultAsync(b => b.UserId == userId && b.IsActive);
+                if (currentActive != null)
+                    currentActive.IsActive = false;
+            }
 
             await _context.Budgets.AddAsync(budget);
             await _context.SaveChangesAsync();
@@ -92,6 +105,15 @@ namespace FinanceControl.Services.Services
             budget.Name = requestDto.Name;
             budget.StartDate = requestDto.StartDate;
             budget.Recurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Recurrence, ignoreCase: true);
+            budget.IsActive = requestDto.IsActive;
+
+            if (requestDto.IsActive)
+            {
+                var currentActive = await _context.Budgets
+                    .FirstOrDefaultAsync(b => b.UserId == userId && b.IsActive && b.Id != requestDto.Id);
+                if (currentActive != null)
+                    currentActive.IsActive = false;
+            }
 
             await _context.SaveChangesAsync();
             var budgetResult = await GetBudgetByIdAsync(requestDto.Id, userId);

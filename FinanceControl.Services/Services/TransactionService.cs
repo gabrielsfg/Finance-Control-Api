@@ -45,12 +45,14 @@ namespace FinanceControl.Services.Services
             if (!subCategoryExists)
                 return Result<CreateTransactionResponseDto>.Failure("Invalid parameters.");
 
-            if (requestDto.BudgetId.HasValue)
+            int? resolvedBudgetId = null;
+            if (requestDto.IncludeInBudget)
             {
-                var budgetExists = await _context.Budgets
-                    .AnyAsync(b => b.Id == requestDto.BudgetId && b.UserId == userId);
-                if (!budgetExists)
-                    return Result<CreateTransactionResponseDto>.Failure("Invalid parameters.");
+                var activeBudget = await _context.Budgets
+                    .FirstOrDefaultAsync(b => b.IsActive && b.UserId == userId);
+                if (activeBudget is null)
+                    return Result<CreateTransactionResponseDto>.Failure("No active budget found.");
+                resolvedBudgetId = activeBudget.Id;
             }
 
             await using var dbTransaction = await _context.Database.BeginTransactionAsync();
@@ -58,9 +60,9 @@ namespace FinanceControl.Services.Services
             {
                 var createdTransactions = paymentType switch
                 {
-                    EnumPaymentType.OneTime => await CreateOneTimeAsync(requestDto, userId, type),
-                    EnumPaymentType.Installment => await CreateInstallmentsAsync(requestDto, userId, type),
-                    EnumPaymentType.Recurring => await CreateRecurringAsync(requestDto, userId, type),
+                    EnumPaymentType.OneTime => await CreateOneTimeAsync(requestDto, userId, type, resolvedBudgetId),
+                    EnumPaymentType.Installment => await CreateInstallmentsAsync(requestDto, userId, type, resolvedBudgetId),
+                    EnumPaymentType.Recurring => await CreateRecurringAsync(requestDto, userId, type, resolvedBudgetId),
                     _ => null
                 };
 
@@ -388,12 +390,12 @@ namespace FinanceControl.Services.Services
         /// <summary>
         /// Private methods
         /// </summary>
-        private async Task<List<Transaction>> CreateOneTimeAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type)
+        private async Task<List<Transaction>> CreateOneTimeAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type, int? budgetId)
         {
             var transaction = new Transaction
             {
                 UserId = userId,
-                BudgetId = dto.BudgetId,
+                BudgetId = budgetId,
                 SubCategoryId = dto.SubCategoryId,
                 AccountId = dto.AccountId,
                 Value = dto.Value,
@@ -408,7 +410,7 @@ namespace FinanceControl.Services.Services
             return [transaction];
         }
 
-        private async Task<List<Transaction>> CreateInstallmentsAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type)
+        private async Task<List<Transaction>> CreateInstallmentsAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type, int? budgetId)
         {
             if (!dto.TotalInstallments.HasValue || dto.TotalInstallments <= 0)
                 return [];
@@ -419,7 +421,7 @@ namespace FinanceControl.Services.Services
             var parent = new Transaction
             {
                 UserId = userId,
-                BudgetId = dto.BudgetId,
+                BudgetId = budgetId,
                 SubCategoryId = dto.SubCategoryId,
                 AccountId = dto.AccountId,
                 Value = firstValue,
@@ -442,7 +444,7 @@ namespace FinanceControl.Services.Services
                 var installment = new Transaction
                 {
                     UserId = userId,
-                    BudgetId = dto.BudgetId,
+                    BudgetId = budgetId,
                     SubCategoryId = dto.SubCategoryId,
                     AccountId = dto.AccountId,
                     ParentTransactionId = parent.Id,
@@ -463,7 +465,7 @@ namespace FinanceControl.Services.Services
             return transactions;
         }
 
-        private async Task<List<Transaction>> CreateRecurringAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type)
+        private async Task<List<Transaction>> CreateRecurringAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type, int? budgetId)
         {
             if (!Enum.TryParse<EnumRecurrenceType>(dto.Recurrence, out var recurrence))
                 return [];
@@ -474,7 +476,7 @@ namespace FinanceControl.Services.Services
             var recurringTemplate = new RecurringTransaction
             {
                 UserId = userId,
-                BudgetId = dto.BudgetId,
+                BudgetId = budgetId,
                 SubCategoryId = dto.SubCategoryId,
                 AccountId = dto.AccountId,
                 Value = dto.Value,
@@ -482,7 +484,6 @@ namespace FinanceControl.Services.Services
                 Description = dto.Description,
                 Recurrence = recurrence,
                 StartDate = dto.TransactionDate,
-                EndDate = dto.RecurringEndDate,
                 IsActive = true
             };
 
@@ -492,7 +493,7 @@ namespace FinanceControl.Services.Services
             var transaction = new Transaction
             {
                 UserId = userId,
-                BudgetId = dto.BudgetId,
+                BudgetId = budgetId,
                 SubCategoryId = dto.SubCategoryId,
                 AccountId = dto.AccountId,
                 RecurringTransactionId = recurringTemplate.Id,
