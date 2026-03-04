@@ -8,7 +8,7 @@ namespace FinanceControl.Shared.Dtos.Request
 {
     public class CreateTransactionRequestDto
     {
-        public int? BudgetId { get; set; }
+        public bool IncludeInBudget { get; set; }
         public int SubCategoryId { get; set; }
         public int AccountId { get; set; }
         public int Value { get; set; }
@@ -18,6 +18,5 @@ namespace FinanceControl.Shared.Dtos.Request
         public string PaymentType { get; set; }
         public int? TotalInstallments { get; set; }
         public string? Recurrence { get; set; }
-        public DateOnly? RecurringEndDate { get; set; }
     }
 }
