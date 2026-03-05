@@ -18,12 +18,12 @@ namespace FinanceControl.WebApi.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IValidator<CreateCategoryRequestDto> _createCategoryValidator;
-        private readonly IValidator<UpdateCategoryRequestDto> _updateCategoryValidator;
-        public CategoryController(ICategoryService categoryService, IValidator<CreateCategoryRequestDto> createCategoryValidator ,IValidator<UpdateCategoryRequestDto> updateCategoryValidator)
+        private readonly IValidator<UpdateCategoriesRequestDto> _updateCategoriesValidator;
+        public CategoryController(ICategoryService categoryService, IValidator<CreateCategoryRequestDto> createCategoryValidator, IValidator<UpdateCategoriesRequestDto> updateCategoriesValidator)
         {
             _categoryService = categoryService;
             _createCategoryValidator = createCategoryValidator;
-            _updateCategoryValidator = updateCategoryValidator;
+            _updateCategoriesValidator = updateCategoriesValidator;
         }
 
         
@@ -52,15 +52,15 @@ namespace FinanceControl.WebApi.Controllers
         }
 
         
-        [HttpPatch("by-id")]
-        public async Task<IActionResult> UpdateCategoryByIdAsync([FromBody] UpdateCategoryRequestDto requestDto)
+        [HttpPatch]
+        public async Task<IActionResult> UpdateCategoriesAsync([FromBody] UpdateCategoriesRequestDto requestDto)
         {
-            var validatonResult = _updateCategoryValidator.Validate(requestDto);
-            if (validatonResult.ToActionResult() is { } errorResult)
+            var validationResult = _updateCategoriesValidator.Validate(requestDto);
+            if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
-            var result = await _categoryService.UpdateCategoryByIdAsync(requestDto, userId);
+            var result = await _categoryService.UpdateCategoriesAsync(requestDto, userId);
 
             if (result.IsFailure)
                 return NotFound(new { error = result.Error });

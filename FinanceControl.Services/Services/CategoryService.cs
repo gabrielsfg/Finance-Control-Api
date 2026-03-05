@@ -43,25 +43,43 @@ namespace FinanceControl.Services.Services
                 .Select(c => new CategoryResponseDto
                 {
                     Id = c.Id,
-                    Name = c.Name
+                    Name = c.Name,
+                    SubCategories = c.SubCategories
+                        .Where(s => !s.IsSystem)
+                        .Select(s => new GetSubCategoryResponseDto
+                        {
+                            Id = s.Id,
+                            Name = s.Name,
+                            CategoryId = s.CategoryId
+                        })
+                        .ToList()
                 })
                 .ToListAsync();
 
             return categories;
         }
 
-        public async Task<Result<IEnumerable<CategoryResponseDto>>> UpdateCategoryByIdAsync(UpdateCategoryRequestDto requestDto, int userId)
+        public async Task<Result<IEnumerable<CategoryResponseDto>>> UpdateCategoriesAsync(UpdateCategoriesRequestDto requestDto, int userId)
         {
-            var categoryToPatch = await _context.Categories
-                .FirstOrDefaultAsync(c => c.UserId == userId && c.Id == requestDto.Id);
+            var ids = requestDto.Categories.Select(c => c.Id).ToList();
 
-            if (categoryToPatch == null)
-                return Result<IEnumerable<CategoryResponseDto>>.Failure("Category not found.");
+            var categoriesToUpdate = await _context.Categories
+                .Where(c => c.UserId == userId && ids.Contains(c.Id))
+                .ToListAsync();
 
-            if (categoryToPatch.IsSystem)
-                return Result<IEnumerable<CategoryResponseDto>>.Failure("System categories cannot be modified.");
+            foreach (var item in requestDto.Categories)
+            {
+                var category = categoriesToUpdate.FirstOrDefault(c => c.Id == item.Id);
 
-            categoryToPatch.Name = requestDto.Name;
+                if (category == null)
+                    return Result<IEnumerable<CategoryResponseDto>>.Failure($"Category with id {item.Id} not found.");
+
+                if (category.IsSystem)
+                    return Result<IEnumerable<CategoryResponseDto>>.Failure($"Category with id {item.Id} is a system category and cannot be modified.");
+
+                category.Name = item.Name;
+            }
+
             await _context.SaveChangesAsync();
 
             var categories = await GetAllCategoriesAsync(userId);

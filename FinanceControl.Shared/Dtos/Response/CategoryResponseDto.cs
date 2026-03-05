@@ -10,5 +10,6 @@ namespace FinanceControl.Shared.Dtos.Respose
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public List<GetSubCategoryResponseDto> SubCategories { get; set; }
     }
 }
