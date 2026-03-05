@@ -48,6 +48,25 @@ namespace FinanceControl.Services.Services
             _context.Add(user);
             await _context.SaveChangesAsync();
 
+            var systemCategory = new Category
+            {
+                UserId = user.Id,
+                Name = "BalanceUpdate",
+                IsSystem = true
+            };
+            _context.Categories.Add(systemCategory);
+            await _context.SaveChangesAsync();
+
+            var systemSubCategory = new SubCategory
+            {
+                UserId = user.Id,
+                CategoryId = systemCategory.Id,
+                Name = "BalanceUpdate",
+                IsSystem = true
+            };
+            _context.SubCategories.Add(systemSubCategory);
+            await _context.SaveChangesAsync();
+
             return user;
         }
 

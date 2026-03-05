@@ -38,11 +38,11 @@ namespace FinanceControl.Services.Services
         public async Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync(int userId)
         {
             var categories = await _context.Categories
-                .Where(c => c.UserId == userId)
+                .Where(c => c.UserId == userId && !c.IsSystem)
                 .OrderBy(c => c.Name)
-                .Select(c => new CategoryResponseDto 
-                { 
-                    Id = c.Id, 
+                .Select(c => new CategoryResponseDto
+                {
+                    Id = c.Id,
                     Name = c.Name
                 })
                 .ToListAsync();
@@ -58,6 +58,9 @@ namespace FinanceControl.Services.Services
             if (categoryToPatch == null)
                 return Result<IEnumerable<CategoryResponseDto>>.Failure("Category not found.");
 
+            if (categoryToPatch.IsSystem)
+                return Result<IEnumerable<CategoryResponseDto>>.Failure("System categories cannot be modified.");
+
             categoryToPatch.Name = requestDto.Name;
             await _context.SaveChangesAsync();
 
@@ -72,6 +75,9 @@ namespace FinanceControl.Services.Services
 
             if (categoryToDelete == null)
                 return Result<IEnumerable<CategoryResponseDto>>.Failure("Category not found.");
+
+            if (categoryToDelete.IsSystem)
+                return Result<IEnumerable<CategoryResponseDto>>.Failure("System categories cannot be deleted.");
 
             _context.Remove(categoryToDelete);
             await _context.SaveChangesAsync();
