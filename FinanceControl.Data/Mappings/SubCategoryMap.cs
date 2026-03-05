@@ -16,6 +16,7 @@ namespace FinanceControl.Data.Mappings
             builder.ToTable("SubCategories");
             builder.HasKey(s => s.Id);
             builder.Property(s => s.Name);
+            builder.Property(s => s.IsSystem).HasDefaultValue(false).IsRequired();
             builder.Property(s => s.CreatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasDefaultValueSql("timezone('America/Sao_Paulo', now())")

@@ -52,7 +52,7 @@ namespace FinanceControl.Services.Services
                 return Result<IEnumerable<GetAllCategoryByAreaResponseDto>>.Failure("Area not found.");
 
             var result = await _context.AreaCategories
-                .Where(ac => ac.AreaId == areaId)
+                .Where(ac => ac.AreaId == areaId && !ac.Category.IsSystem)
                 .Select(ac => new GetAllCategoryByAreaResponseDto
                 {
                     Id = ac.Category.Id,
@@ -92,7 +92,7 @@ namespace FinanceControl.Services.Services
 
         private async Task<bool> ValidateCategoryByUserIdAsync(int categoryId, int userId)
         {
-            var result = await _context.Categories.Where(c => c.Id == categoryId && c.UserId == userId).AnyAsync();
+            var result = await _context.Categories.Where(c => c.Id == categoryId && c.UserId == userId && !c.IsSystem).AnyAsync();
             return result;
         }
 

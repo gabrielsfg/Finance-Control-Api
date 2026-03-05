@@ -45,12 +45,14 @@ namespace FinanceControl.Services.Services
 
         public async Task<IEnumerable<GetSubCategoryResponseDto>> GetAllSubCategoryAsync(int userId)
         {
-            var subCategories = await _context.SubCategories.Where(s => s.UserId == userId).Select(s => new GetSubCategoryResponseDto
-            {
-                Name = s.Name,
-                CategoryId = s.CategoryId,
-                Id = s.Id
-            }).ToListAsync();
+            var subCategories = await _context.SubCategories
+                .Where(s => s.UserId == userId && !s.IsSystem)
+                .Select(s => new GetSubCategoryResponseDto
+                {
+                    Name = s.Name,
+                    CategoryId = s.CategoryId,
+                    Id = s.Id
+                }).ToListAsync();
 
             return subCategories;
         }
@@ -58,7 +60,7 @@ namespace FinanceControl.Services.Services
         public async Task<GetSubCategoryResponseDto?> GetSubCategoryByIdAsync(int id, int userId)
         {
             return await _context.SubCategories
-                .Where(s => s.UserId == userId && s.Id == id)
+                .Where(s => s.UserId == userId && s.Id == id && !s.IsSystem)
                 .Select(s => new GetSubCategoryResponseDto
                 {
                     Id = s.Id,
@@ -81,6 +83,8 @@ namespace FinanceControl.Services.Services
             if (subCategory == null)
                 return Result<IEnumerable<GetSubCategoryResponseDto>>.Failure("SubCategory not found.");
 
+            if (subCategory.IsSystem)
+                return Result<IEnumerable<GetSubCategoryResponseDto>>.Failure("System subcategories cannot be modified.");
 
             subCategory.Name = requestDto.Name;
             subCategory.CategoryId = requestDto.CategoryId;
@@ -93,10 +97,13 @@ namespace FinanceControl.Services.Services
 
         public async Task<Result<IEnumerable<GetSubCategoryResponseDto>>> DeleteSubCategoryAsync(int id, int userId)
         {
-            var subCategory = await _context.SubCategories.FirstOrDefaultAsync(s => s.UserId== userId && s.Id == id);
+            var subCategory = await _context.SubCategories.FirstOrDefaultAsync(s => s.UserId == userId && s.Id == id);
 
             if (subCategory == null)
                 return Result<IEnumerable<GetSubCategoryResponseDto>>.Failure("SubCategory not found.");
+
+            if (subCategory.IsSystem)
+                return Result<IEnumerable<GetSubCategoryResponseDto>>.Failure("System subcategories cannot be deleted.");
 
             _context.Remove(subCategory);
             await _context.SaveChangesAsync();
@@ -108,7 +115,7 @@ namespace FinanceControl.Services.Services
 
         private async Task<Boolean> ValidateCategoryByIdAsync(int categoryId, int userId)
         {
-            var category = await _context.Categories.Where(x => x.UserId == userId && x.Id == categoryId).AnyAsync();
+            var category = await _context.Categories.Where(x => x.UserId == userId && x.Id == categoryId && !x.IsSystem).AnyAsync();
             return category;
         }
     }
