@@ -45,7 +45,7 @@ namespace FinanceControl.Services.Services
                     Id = c.Id,
                     Name = c.Name,
                     SubCategories = c.SubCategories
-                        .Where(s => !s.IsSystem)
+                        .Where(s => s.UserId == userId && !s.IsSystem)
                         .Select(s => new GetSubCategoryResponseDto
                         {
                             Id = s.Id,

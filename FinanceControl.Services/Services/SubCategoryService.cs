@@ -49,9 +49,10 @@ namespace FinanceControl.Services.Services
                 .Where(s => s.UserId == userId && !s.IsSystem)
                 .Select(s => new GetSubCategoryResponseDto
                 {
+                    Id = s.Id,
                     Name = s.Name,
                     CategoryId = s.CategoryId,
-                    Id = s.Id
+                    CategoryName = s.Category.Name
                 }).ToListAsync();
 
             return subCategories;
@@ -65,7 +66,8 @@ namespace FinanceControl.Services.Services
                 {
                     Id = s.Id,
                     Name = s.Name,
-                    CategoryId = s.CategoryId
+                    CategoryId = s.CategoryId,
+                    CategoryName = s.Category.Name
                 })
                 .FirstOrDefaultAsync();
         }
