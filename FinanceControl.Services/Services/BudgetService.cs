@@ -1,16 +1,11 @@
-﻿using FinanceControl.Data.Data;
+using FinanceControl.Data.Data;
 using FinanceControl.Domain.Entities;
-using FinanceControl.Domain.Enums;
 using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Enums;
 using FinanceControl.Shared.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FinanceControl.Services.Services
 {
@@ -29,7 +24,7 @@ namespace FinanceControl.Services.Services
             {
                 Name = requestDto.Name,
                 StartDate = requestDto.StartDate,
-                Recurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Recurrence, ignoreCase: true),
+                Recurrence = requestDto.Recurrence,
                 UserId = userId,
                 IsActive = requestDto.IsActive
             };
@@ -60,7 +55,7 @@ namespace FinanceControl.Services.Services
             {
                 Id = b.Id,
                 Name = b.Name,
-                Recurrence = b.Recurrence.ToString()
+                Recurrence = b.Recurrence
             }).ToListAsync();
 
             return budgets;
@@ -91,7 +86,7 @@ namespace FinanceControl.Services.Services
                 Name = budget.Name,
                 StartDate = startDate,
                 FinishDate = finishDate,
-                Reccurence = budget.Recurrence.ToString()
+                Recurence = budget.Recurrence
             };
         }
 
@@ -104,7 +99,7 @@ namespace FinanceControl.Services.Services
 
             budget.Name = requestDto.Name;
             budget.StartDate = requestDto.StartDate;
-            budget.Recurrence = Enum.Parse<EnumBudgetRecurrence>(requestDto.Recurrence, ignoreCase: true);
+            budget.Recurrence = requestDto.Recurrence;
             budget.IsActive = requestDto.IsActive;
 
             if (requestDto.IsActive)

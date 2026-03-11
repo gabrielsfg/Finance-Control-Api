@@ -38,7 +38,7 @@ namespace FinanceControl.Services.Services
 
 
             var isDuplicate = await _context.BudgetSubcategoryAllocations
-                .AnyAsync(bsa => bsa.AreaId == requestDto.AreaId
+                .AnyAsync(bsa => bsa.BudgetId == requestDto.BudgetId
                 && bsa.SubCategoryId == requestDto.SubCategoryId);
 
             if (isDuplicate)
@@ -49,7 +49,8 @@ namespace FinanceControl.Services.Services
                 BudgetId = requestDto.BudgetId,
                 AreaId = requestDto.AreaId,
                 SubCategoryId = requestDto.SubCategoryId,
-                ExpectedValue = requestDto.ExpectedValue
+                ExpectedValue = requestDto.ExpectedValue,
+                AllocationType = requestDto.AllocationType
             };
 
             _context.Add(allocation);
@@ -77,12 +78,14 @@ namespace FinanceControl.Services.Services
                 .Where(bsa => areasId.Contains(bsa.AreaId))
                 .Select(bsa => new
                 {
+                    bsa.Id,
                     bsa.AreaId,
                     bsa.SubCategoryId,
                     SubcategoryName = bsa.SubCategory.Name,
                     bsa.ExpectedValue,
                     bsa.SubCategory.CategoryId,
-                    CategoryName = bsa.SubCategory.Category.Name
+                    CategoryName = bsa.SubCategory.Category.Name,
+                    bsa.AllocationType
                 }).ToListAsync();
 
             var result = areas.Select(area =>
@@ -98,9 +101,11 @@ namespace FinanceControl.Services.Services
                         CategoryExpectedValue = g.Sum(a => a.ExpectedValue),
                         SubCategories = g.Select(a => new SubCategoryAllocationItemByCategoryIdDto
                         {
+                            AllocationId = a.Id,
                             SubCategoryId = a.SubCategoryId,
                             SubCategoryName = a.SubcategoryName,
-                            SubCategoryExpectedValue = a.ExpectedValue
+                            SubCategoryExpectedValue = a.ExpectedValue,
+                            AllocationType = a.AllocationType
                         }).ToList()
                     }).ToList();
 
@@ -160,6 +165,7 @@ namespace FinanceControl.Services.Services
                 return Result<IEnumerable<GetAllSubCategoryAllocationByAreaResponseDto>>.Failure("Invalid parameters.");
 
             allocation.ExpectedValue = requestDto.ExpectedValue;
+            allocation.AllocationType = requestDto.AllocationType;
 
             await _context.SaveChangesAsync();
 

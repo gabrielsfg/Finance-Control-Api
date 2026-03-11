@@ -1,18 +1,13 @@
-﻿using FinanceControl.Data.Data;
+using FinanceControl.Data.Data;
 using FinanceControl.Domain.Entities;
-using FinanceControl.Domain.Enums;
 using FinanceControl.Domain.Interfaces.Services;
 using FinanceControl.Shared.Dtos.Others;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Response;
+using FinanceControl.Shared.Enums;
 using FinanceControl.Shared.Helpers;
 using FinanceControl.Shared.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FinanceControl.Services.Services
 {
@@ -29,12 +24,6 @@ namespace FinanceControl.Services.Services
 
         public async Task<Result<CreateTransactionResponseDto>> CreateTransactionAsync(CreateTransactionRequestDto requestDto, int userId)
         {
-            if (!Enum.TryParse<EnumTransactionType>(requestDto.Type, out var type))
-                return Result<CreateTransactionResponseDto>.Failure("Invalid transaction type.");
-
-            if (!Enum.TryParse<EnumPaymentType>(requestDto.PaymentType, out var paymentType))
-                return Result<CreateTransactionResponseDto>.Failure("Invalid payment type.");
-
             var accountExists = await _context.Accounts
                 .AnyAsync(a => a.Id == requestDto.AccountId && a.UserId == userId);
             if (!accountExists)
@@ -58,18 +47,18 @@ namespace FinanceControl.Services.Services
             await using var dbTransaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var createdTransactions = paymentType switch
+                var createdTransactions = requestDto.PaymentType switch
                 {
-                    EnumPaymentType.OneTime => await CreateOneTimeAsync(requestDto, userId, type, resolvedBudgetId),
-                    EnumPaymentType.Installment => await CreateInstallmentsAsync(requestDto, userId, type, resolvedBudgetId),
-                    EnumPaymentType.Recurring => await CreateRecurringAsync(requestDto, userId, type, resolvedBudgetId),
+                    EnumPaymentType.OneTime => await CreateOneTimeAsync(requestDto, userId, resolvedBudgetId),
+                    EnumPaymentType.Installment => await CreateInstallmentsAsync(requestDto, userId, resolvedBudgetId),
+                    EnumPaymentType.Recurring => await CreateRecurringAsync(requestDto, userId, resolvedBudgetId),
                     _ => null
                 };
 
                 if (createdTransactions is null || createdTransactions.Count == 0)
                     return Result<CreateTransactionResponseDto>.Failure("Invalid payment type.");
 
-                await _context.SaveChangesAsync(); // único SaveChanges de toda a operação
+                await _context.SaveChangesAsync();
                 await dbTransaction.CommitAsync();
 
                 var transactionIds = createdTransactions.Select(t => t.Id).ToList();
@@ -149,10 +138,10 @@ namespace FinanceControl.Services.Services
                     RecurringTransactionId = t.RecurringTransactionId,
                     ParentTransactionId = t.ParentTransactionId,
                     Value = t.Value,
-                    Type = t.Type.ToString(),
+                    Type = t.Type,
                     Description = t.Description,
                     TransactionDate = t.TransactionDate,
-                    PaymentType = t.PaymentType.ToString(),
+                    PaymentType = t.PaymentType,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
                     IsPaid = t.IsPaid
@@ -310,33 +299,23 @@ namespace FinanceControl.Services.Services
         {
             await using var context = _contextFactory.CreateDbContext();
 
-            var transactions = await context.Transactions
+            return await context.Transactions
                 .Where(t => t.UserId == requestDto.UserId)
                 .WhereIf(requestDto.BudgetId.HasValue, t => t.BudgetId == requestDto.BudgetId)
                 .Where(t => t.TransactionDate >= requestDto.StartDate && t.TransactionDate <= requestDto.FinishDate)
                 .OrderByDescending(t => t.TransactionDate)
                 .ThenByDescending(t => t.CreatedAt)
                 .Take(5)
-                .Select(t => new
+                .Select(t => new RecentTransactionDto
                 {
-                    t.Id,
-                    t.Description,
-                    t.Value,
-                    t.Type,
+                    Id = t.Id,
+                    Description = t.Description,
+                    Value = t.Value,
+                    Type = t.Type,
                     SubCategoryName = t.SubCategory.Name,
                     CategoryName = t.SubCategory.Category.Name
                 })
                 .ToListAsync();
-
-            return transactions.Select(t => new RecentTransactionDto
-            {
-                Id = t.Id,
-                Description = t.Description,
-                Value = t.Value,
-                Type = (int)t.Type,
-                SubCategoryName = t.SubCategoryName,
-                CategoryName = t.CategoryName
-            }).ToList();
         }
 
         public async Task<BudgetSummaryDto> GetBudgetSummaryAsync(MainPageSummaryRequestDto requestDto)
@@ -390,7 +369,7 @@ namespace FinanceControl.Services.Services
         /// <summary>
         /// Private methods
         /// </summary>
-        private async Task<List<Transaction>> CreateOneTimeAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type, int? budgetId)
+        private async Task<List<Transaction>> CreateOneTimeAsync(CreateTransactionRequestDto dto, int userId, int? budgetId)
         {
             var transaction = new Transaction
             {
@@ -399,7 +378,7 @@ namespace FinanceControl.Services.Services
                 SubCategoryId = dto.SubCategoryId,
                 AccountId = dto.AccountId,
                 Value = dto.Value,
-                Type = type,
+                Type = dto.Type,
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.OneTime,
@@ -410,7 +389,7 @@ namespace FinanceControl.Services.Services
             return [transaction];
         }
 
-        private async Task<List<Transaction>> CreateInstallmentsAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type, int? budgetId)
+        private async Task<List<Transaction>> CreateInstallmentsAsync(CreateTransactionRequestDto dto, int userId, int? budgetId)
         {
             if (!dto.TotalInstallments.HasValue || dto.TotalInstallments <= 0)
                 return [];
@@ -425,7 +404,7 @@ namespace FinanceControl.Services.Services
                 SubCategoryId = dto.SubCategoryId,
                 AccountId = dto.AccountId,
                 Value = firstValue,
-                Type = type,
+                Type = dto.Type,
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.Installment,
@@ -449,7 +428,7 @@ namespace FinanceControl.Services.Services
                     AccountId = dto.AccountId,
                     ParentTransactionId = parent.Id,
                     Value = otherValue,
-                    Type = type,
+                    Type = dto.Type,
                     Description = dto.Description,
                     TransactionDate = dto.TransactionDate.AddMonths(i - 1),
                     PaymentType = EnumPaymentType.Installment,
@@ -465,10 +444,9 @@ namespace FinanceControl.Services.Services
             return transactions;
         }
 
-        private async Task<List<Transaction>> CreateRecurringAsync(CreateTransactionRequestDto dto, int userId, EnumTransactionType type, int? budgetId)
+        private async Task<List<Transaction>> CreateRecurringAsync(CreateTransactionRequestDto dto, int userId, int? budgetId)
         {
-            if (!Enum.TryParse<EnumRecurrenceType>(dto.Recurrence, out var recurrence))
-                return [];
+            var recurrence = dto.Recurrence ?? EnumRecurrenceType.None;
 
             if (recurrence == EnumRecurrenceType.None)
                 return [];
@@ -480,7 +458,7 @@ namespace FinanceControl.Services.Services
                 SubCategoryId = dto.SubCategoryId,
                 AccountId = dto.AccountId,
                 Value = dto.Value,
-                Type = type,
+                Type = dto.Type,
                 Description = dto.Description,
                 Recurrence = recurrence,
                 StartDate = dto.TransactionDate,
@@ -498,7 +476,7 @@ namespace FinanceControl.Services.Services
                 AccountId = dto.AccountId,
                 RecurringTransactionId = recurringTemplate.Id,
                 Value = dto.Value,
-                Type = type,
+                Type = dto.Type,
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.Recurring,
@@ -524,10 +502,10 @@ namespace FinanceControl.Services.Services
                     RecurringTransactionId = t.RecurringTransactionId,
                     ParentTransactionId = t.ParentTransactionId,
                     Value = t.Value,
-                    Type = t.Type.ToString(),
+                    Type = t.Type,
                     Description = t.Description,
                     TransactionDate = t.TransactionDate,
-                    PaymentType = t.PaymentType.ToString(),
+                    PaymentType = t.PaymentType,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
                     IsPaid = t.IsPaid
@@ -549,10 +527,10 @@ namespace FinanceControl.Services.Services
                     RecurringTransactionId = t.RecurringTransactionId,
                     ParentTransactionId = t.ParentTransactionId,
                     Value = t.Value,
-                    Type = t.Type.ToString(),
+                    Type = t.Type,
                     Description = t.Description,
                     TransactionDate = t.TransactionDate,
-                    PaymentType = t.PaymentType.ToString(),
+                    PaymentType = t.PaymentType,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
                     IsPaid = t.IsPaid

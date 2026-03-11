@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FinanceControl.Shared.Enums;
 
 namespace FinanceControl.Shared.Dtos.Respose
 {
@@ -12,6 +8,6 @@ namespace FinanceControl.Shared.Dtos.Respose
         public string Name { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly FinishDate { get; set; }
-        public string Reccurence { get; set; }
+        public EnumBudgetRecurrence Recurence { get; set; }
     }
 }

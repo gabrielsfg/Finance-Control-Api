@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FinanceControl.Shared.Enums;
 
 namespace FinanceControl.Shared.Dtos.Request
 {
     public class CreateBudgetResquestDto
     {
-        public string Name {  get; set; }
+        public string Name { get; set; }
         public int StartDate { get; set; }
-        public string Recurrence { get; set; }
+        public EnumBudgetRecurrence Recurrence { get; set; }
         public bool IsActive { get; set; }
     }
 }
