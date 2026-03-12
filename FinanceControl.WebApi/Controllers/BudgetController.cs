@@ -1,4 +1,4 @@
-﻿using FinanceControl.Domain.Interfaces.Service;
+using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Services.Extensions;
 using FinanceControl.Services.Validations;
 using FinanceControl.Shared.Dtos.Request;
@@ -37,7 +37,7 @@ namespace FinanceControl.WebApi.Controllers
             var userId = GetUserId();
 
             var result = await _budgetService.CreateBudgetAsync(requestDto, userId);
-            return Ok(result);
+            return Ok(result.Value);
         }
 
         [HttpGet("all")]
@@ -61,7 +61,22 @@ namespace FinanceControl.WebApi.Controllers
             var result = await _budgetService.GetBudgetByIdAsync(id, userId);
 
             if (result == null)
-                return NotFound("Category not found.");
+                return NotFound("Budget not found.");
+            return Ok(result);
+        }
+
+        [HttpGet("{id:int}/allocation")]
+        public async Task<IActionResult> GetBudgetWithAllocationsAsync([FromRoute] int id)
+        {
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
+
+            var userId = GetUserId();
+            var result = await _budgetService.GetBudgetWithAllocationsAsync(id, userId);
+
+            if (result == null)
+                return NotFound("Budget not found.");
             return Ok(result);
         }
 
@@ -76,7 +91,7 @@ namespace FinanceControl.WebApi.Controllers
             var userId = GetUserId();
             var result = await _budgetService.UpdateBudgetAsync(requestDto, userId);
 
-            if(result.IsFailure)
+            if (result.IsFailure)
                 return NotFound(new { error = result.Error });
 
             return Ok(result.Value);
