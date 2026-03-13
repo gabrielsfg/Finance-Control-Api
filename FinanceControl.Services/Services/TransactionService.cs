@@ -73,12 +73,10 @@ namespace FinanceControl.Services.Services
             }
         }
 
-        public async Task<Result<IEnumerable<GetTransactionResponseDto>>> GetAllTransactionsAsync(int userId)
+        public async Task<IEnumerable<GetTransactionResponseDto>> GetAllTransactionsAsync(int userId)
         {
-            var transactions = await GetTransactionQuery(userId)
+            return await GetTransactionQuery(userId)
                 .ToListAsync();
-
-            return Result<IEnumerable<GetTransactionResponseDto>>.Success(transactions);
         }
 
         public async Task<Result<IEnumerable<GetTransactionResponseDto>>> GetAllTransactionsByBudgetAsync(int budgetId, int userId)
@@ -123,9 +121,9 @@ namespace FinanceControl.Services.Services
             return Result<IEnumerable<GetTransactionResponseDto>>.Success(transactions);
         }
 
-        public async Task<Result<GetTransactionByIdResponseDto>> GetTransactionByIdAsync(int id, int userId)
+        public async Task<GetTransactionByIdResponseDto?> GetTransactionByIdAsync(int id, int userId)
         {
-            var transaction = await _context.Transactions
+            return await _context.Transactions
                 .Where(t => t.Id == id && t.UserId == userId)
                 .Select(t => new GetTransactionByIdResponseDto
                 {
@@ -147,11 +145,6 @@ namespace FinanceControl.Services.Services
                     IsPaid = t.IsPaid
                 })
                 .FirstOrDefaultAsync();
-
-            if (transaction is null)
-                return Result<GetTransactionByIdResponseDto>.Failure("Transaction not found.");
-
-            return Result<GetTransactionByIdResponseDto>.Success(transaction);
         }
 
         public async Task<Result<IEnumerable<GetTransactionResponseDto>>> UpdateTransactionAsync(UpdateTransactionRequestDto requestDto, int id, int userId)
@@ -189,7 +182,8 @@ namespace FinanceControl.Services.Services
 
             await _context.SaveChangesAsync();
 
-            return await GetAllTransactionsAsync(userId);
+            var transactions = await GetAllTransactionsAsync(userId);
+            return Result<IEnumerable<GetTransactionResponseDto>>.Success(transactions);
         }
 
         public async Task<Result<IEnumerable<GetTransactionResponseDto>>> DeleteTransactionAsync(int id, int userId)
@@ -203,7 +197,8 @@ namespace FinanceControl.Services.Services
             _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
 
-            return await GetAllTransactionsAsync(userId);
+            var transactions = await GetAllTransactionsAsync(userId);
+            return Result<IEnumerable<GetTransactionResponseDto>>.Success(transactions);
         }
 
         public async Task<Result<IEnumerable<GetTransactionResponseDto>>> UpdateRecurringTransactionAsync(UpdateRecurringTransactionRequestDto requestDto, int recurringId, int userId)
@@ -244,7 +239,8 @@ namespace FinanceControl.Services.Services
 
             await _context.SaveChangesAsync();
 
-            return await GetAllTransactionsAsync(userId);
+            var transactions = await GetAllTransactionsAsync(userId);
+            return Result<IEnumerable<GetTransactionResponseDto>>.Success(transactions);
         }
 
         public async Task<Result<IEnumerable<GetTransactionResponseDto>>> CancelRecurringTransactionAsync(int recurringId, int userId)
@@ -262,7 +258,8 @@ namespace FinanceControl.Services.Services
 
             await _context.SaveChangesAsync();
 
-            return await GetAllTransactionsAsync(userId);
+            var transactions = await GetAllTransactionsAsync(userId);
+            return Result<IEnumerable<GetTransactionResponseDto>>.Success(transactions);
         }
 
         /// <summary>

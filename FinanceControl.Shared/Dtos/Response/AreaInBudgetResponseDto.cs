@@ -1,4 +1,4 @@
-namespace FinanceControl.Shared.Dtos.Respose
+namespace FinanceControl.Shared.Dtos.Response
 {
     public class AreaInBudgetResponseDto
     {

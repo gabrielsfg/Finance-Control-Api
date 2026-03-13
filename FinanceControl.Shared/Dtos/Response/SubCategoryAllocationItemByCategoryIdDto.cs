@@ -1,6 +1,6 @@
-﻿using FinanceControl.Shared.Enums;
+using FinanceControl.Shared.Enums;
 
-namespace FinanceControl.Shared.Dtos.Respose
+namespace FinanceControl.Shared.Dtos.Response
 {
     public class SubCategoryAllocationItemByCategoryIdDto
     {
