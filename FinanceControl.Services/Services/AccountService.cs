@@ -1,10 +1,10 @@
-﻿using FinanceControl.Data.Data;
+using FinanceControl.Data.Data;
 using FinanceControl.Domain.Entities;
-using FinanceControl.Domain.Enums;
+using FinanceControl.Shared.Enums;
 using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Shared.Dtos.Others;
 using FinanceControl.Shared.Dtos.Request;
-using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -99,7 +99,7 @@ namespace FinanceControl.Services.Services
                 Id = t.Id,
                 Description = t.Description,
                 Value = t.Value,
-                Type = (int)t.Type,
+                Type = t.Type,
                 SubCategoryName = t.SubCategoryName,
                 CategoryName = t.CategoryName
             }).ToList();

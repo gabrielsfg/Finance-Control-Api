@@ -3,6 +3,7 @@ using FinanceControl.Services.Extensions;
 using FinanceControl.Services.Validations;
 using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.WebApi.Controllers.Base;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace FinanceControl.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         private readonly IUserService _userService;
         private readonly IValidator<CreateUserRequestDto> _createUserValidator;

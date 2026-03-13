@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FinanceControl.Shared.Enums;
 
 namespace FinanceControl.Shared.Dtos.Others
 {
@@ -11,7 +7,7 @@ namespace FinanceControl.Shared.Dtos.Others
         public int Id { get; set; }
         public string Description { get; set; }
         public int Value { get; set; }
-        public int Type { get; set; }
+        public EnumTransactionType Type { get; set; }
         public string SubCategoryName { get; set; }
         public string CategoryName { get; set; }
     }

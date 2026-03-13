@@ -1,11 +1,9 @@
-using FinanceControl.Shared.Enums;
-
 namespace FinanceControl.Shared.Dtos.Response
 {
-    public class GetAllBudgetResponseDto
+    public class AreaInBudgetResponseDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public EnumBudgetRecurrence Recurrence { get; set; }
+        public List<AllocationInBudgetResponseDto> Allocations { get; set; } = [];
     }
 }

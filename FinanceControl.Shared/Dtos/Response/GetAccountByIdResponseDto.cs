@@ -1,7 +1,7 @@
-﻿using FinanceControl.Shared.Dtos.Others;
+using FinanceControl.Shared.Dtos.Others;
 using System.Collections.Generic;
 
-namespace FinanceControl.Shared.Dtos.Respose
+namespace FinanceControl.Shared.Dtos.Response
 {
     public class GetAccountByIdResponseDto
     {

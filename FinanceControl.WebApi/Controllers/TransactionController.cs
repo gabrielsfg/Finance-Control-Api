@@ -45,7 +45,7 @@ namespace FinanceControl.WebApi.Controllers
             if (result.IsFailure)
                 return NotFound(new { error = result.Error });
 
-            return Ok(result.Value);
+            return Created($"/api/transaction", result.Value);
         }
 
         [HttpGet]
@@ -54,10 +54,7 @@ namespace FinanceControl.WebApi.Controllers
             var userId = GetUserId();
 
             var result = await _transactionService.GetAllTransactionsAsync(userId);
-            if (result.IsFailure)
-                return NotFound(new { error = result.Error });
-
-            return Ok(result.Value);
+            return Ok(result);
         }
 
         [HttpGet("by-budget/{budgetId:int}")]
@@ -118,10 +115,10 @@ namespace FinanceControl.WebApi.Controllers
             var userId = GetUserId();
 
             var result = await _transactionService.GetTransactionByIdAsync(id, userId);
-            if (result.IsFailure)
-                return NotFound(new { error = result.Error });
+            if (result is null)
+                return NotFound(new { error = "Transaction not found." });
 
-            return Ok(result.Value);
+            return Ok(result);
         }
 
         [HttpPatch("{id:int}")]

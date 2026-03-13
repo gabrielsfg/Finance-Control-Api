@@ -1,11 +1,10 @@
-﻿using FinanceControl.Shared.Enums;
+using FinanceControl.Shared.Enums;
 
 namespace FinanceControl.Shared.Dtos.Request
 {
-    public class AddSubCategoryToBudgetRequestDto
+    public class UpsertAllocationInBudgetDto
     {
-        public int BudgetId { get; set; }
-        public int AreaId { get; set; }
+        public int? Id { get; set; }
         public int SubCategoryId { get; set; }
         public int ExpectedValue { get; set; }
         public EnumAllocationType AllocationType { get; set; }

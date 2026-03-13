@@ -1,20 +1,16 @@
-﻿using FinanceControl.Shared.Dtos.Request;
-using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface IBudgetService
     {
-        Task<Result<GetBudgetByIdResponseDto>> CreateBudgetAsync(CreateBudgetResquestDto requestDto, int userId);
+        Task<Result<GetBudgetWithAreasResponseDto>> CreateBudgetAsync(CreateBudgetRequestDto requestDto, int userId);
         Task<IEnumerable<GetAllBudgetResponseDto>> GetAllBudgetAsync(int userId);
         Task<GetBudgetByIdResponseDto> GetBudgetByIdAsync(int id, int userId);
-        Task<Result<GetBudgetByIdResponseDto>> UpdateBudgetAsync(UpdateBudgetRequestDto requestDto, int userId);
+        Task<GetBudgetWithAreasResponseDto> GetBudgetWithAllocationsAsync(int id, int userId);
+        Task<Result<GetBudgetWithAreasResponseDto>> UpdateBudgetAsync(UpdateBudgetRequestDto requestDto, int userId);
         Task<Result<IEnumerable<GetAllBudgetResponseDto>>> DeleteBudgetAsync(int id, int userId);
     }
 }

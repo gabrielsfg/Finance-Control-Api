@@ -30,8 +30,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAccountAsync([FromBody]CreateAccountRequestDto requestDto)
         {
-            var validatonResult = _createAccountValidator.Validate(requestDto);
-            if (validatonResult.ToActionResult() is { } errorResult)
+            var validationResult = _createAccountValidator.Validate(requestDto);
+            if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -61,18 +61,23 @@ namespace FinanceControl.WebApi.Controllers
             var result = await _accountService.GetAccountByIdAsync(id, userId);
 
             if(result == null)
-                return NotFound("Account not found.");
+                return NotFound(new { error = "Account not found." });
 
             return Ok(result);
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> UpdateAccountAsync([FromBody] UpdateAccountRequestDto requestDto)
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> UpdateAccountAsync([FromRoute] int id, [FromBody] UpdateAccountRequestDto requestDto)
         {
-            var validatonResult = _updateAccountValidator.Validate(requestDto);
-            if (validatonResult.ToActionResult() is { } errorResult)
+            var validationId = this.ValidatePositiveId(id, "id");
+            if (validationId is not null)
+                return validationId;
+
+            var validationResult = _updateAccountValidator.Validate(requestDto);
+            if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
+            requestDto.Id = id;
             var userId = GetUserId();
             var result = await _accountService.UpdateAccountAsync(requestDto, userId);
 
