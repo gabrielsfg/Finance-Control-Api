@@ -1,5 +1,5 @@
 ﻿using FinanceControl.Domain.Common;
-using FinanceControl.Domain.Enums;
+using FinanceControl.Shared.Enums;
 
 namespace FinanceControl.Domain.Entities
 {

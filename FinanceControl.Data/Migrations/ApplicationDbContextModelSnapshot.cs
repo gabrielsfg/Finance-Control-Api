@@ -143,6 +143,9 @@ namespace FinanceControl.Data.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -175,6 +178,10 @@ namespace FinanceControl.Data.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AllocationType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("AreaId")
                         .HasColumnType("integer");
@@ -220,6 +227,11 @@ namespace FinanceControl.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
                         .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
+
+                    b.Property<bool>("IsSystem")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -320,6 +332,11 @@ namespace FinanceControl.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
                         .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
+
+                    b.Property<bool>("IsSystem")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()

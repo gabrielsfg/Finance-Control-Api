@@ -1,5 +1,5 @@
-﻿using FinanceControl.Shared.Dtos.Request;
-using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace FinanceControl.Domain.Interfaces.Service
     {
         Task<Result<IEnumerable<GetAllAreaItemResponseDto>>> CreateAreaAsync(CreateAreaRequestDto requestDto, int userId);
         Task<IEnumerable<GetAllAreaItemResponseDto>> GetAllAreasAsync(int budgetId, int userId);
-        Task<GetAreaByIdResponseDto?> GetAreaByIdAync(int id, int userId);
+        Task<GetAreaByIdResponseDto?> GetAreaByIdAsync(int id, int userId);
         Task<Result<IEnumerable<GetAllAreaItemResponseDto>>> UpdateAreaAsync(UpdateAreaRequestDto requestDto, int userId);
         Task<Result<IEnumerable<GetAllAreaItemResponseDto>>> DeleteAreaAsync(int id, int userId);
     }

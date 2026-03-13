@@ -35,6 +35,8 @@ namespace FinanceControl.Services.Services
 
         public async Task<User?> RegisterUserAsync(CreateUserRequestDto requestDto)
         {
+            requestDto.Email = requestDto.Email.ToLower();
+
             if (await _context.Users.AnyAsync(u => u.Email == requestDto.Email))
                 return null;
 
@@ -48,11 +50,32 @@ namespace FinanceControl.Services.Services
             _context.Add(user);
             await _context.SaveChangesAsync();
 
+            var systemCategory = new Category
+            {
+                UserId = user.Id,
+                Name = "BalanceUpdate",
+                IsSystem = true
+            };
+            _context.Categories.Add(systemCategory);
+            await _context.SaveChangesAsync();
+
+            var systemSubCategory = new SubCategory
+            {
+                UserId = user.Id,
+                CategoryId = systemCategory.Id,
+                Name = "BalanceUpdate",
+                IsSystem = true
+            };
+            _context.SubCategories.Add(systemSubCategory);
+            await _context.SaveChangesAsync();
+
             return user;
         }
 
         public async Task<string?> UserLoginAsync(UserLoginRequestDto requestDto)
         {
+            requestDto.Email = requestDto.Email.ToLower();
+
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == requestDto.Email);
             if (user is null)
                 return null;

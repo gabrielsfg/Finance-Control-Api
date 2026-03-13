@@ -1,9 +1,5 @@
 ﻿using FinanceControl.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FinanceControl.Shared.Enums;
 
 namespace FinanceControl.Domain.Entities
 {
@@ -19,5 +15,7 @@ namespace FinanceControl.Domain.Entities
         public SubCategory SubCategory { get; set; }
 
         public int ExpectedValue { get; set; }
+
+        public EnumAllocationType AllocationType { get; set; }
     }
 }

@@ -1,10 +1,11 @@
-﻿using FinanceControl.Data.Data;
+using FinanceControl.Data.Data;
 using FinanceControl.Domain.Entities;
+using FinanceControl.Shared.Enums;
 using FinanceControl.Domain.Interfaces.Service;
+using FinanceControl.Shared.Dtos.Others;
 using FinanceControl.Shared.Dtos.Request;
-using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -77,13 +78,40 @@ namespace FinanceControl.Services.Services
             if (account == null)
                 return null;
 
+            var rawTransactions = await _context.Transactions
+                .Where(t => t.UserId == userId && t.AccountId == id)
+                .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.CreatedAt)
+                .Take(5)
+                .Select(t => new
+                {
+                    t.Id,
+                    t.Description,
+                    t.Value,
+                    t.Type,
+                    SubCategoryName = t.SubCategory.Name,
+                    CategoryName = t.SubCategory.Category.Name
+                })
+                .ToListAsync();
+
+            var recentTransactions = rawTransactions.Select(t => new RecentTransactionDto
+            {
+                Id = t.Id,
+                Description = t.Description,
+                Value = t.Value,
+                Type = t.Type,
+                SubCategoryName = t.SubCategoryName,
+                CategoryName = t.CategoryName
+            }).ToList();
+
             return new GetAccountByIdResponseDto()
             {
                 Id = account.Id,
                 Name = account.Name,
                 CurrentAmount = account.CurrentBalance,
                 GoalAmount = account.GoalAmount,
-                IsDefaultAccount = account.IsDefaultAccount
+                IsDefaultAccount = account.IsDefaultAccount,
+                RecentTransactions = recentTransactions
             };
         }
 
@@ -94,12 +122,42 @@ namespace FinanceControl.Services.Services
             if (account == null)
                 return Result<IEnumerable<GetAccountItemResponseDto>>.Failure("Account not found.");
 
+            var oldBalance = account.CurrentBalance;
+
             account.Name = requestDto.Name;
             account.CurrentBalance = requestDto.CurrentBalance;
             account.GoalAmount = requestDto.GoalAmount;
             account.IsDefaultAccount = requestDto.IsDefaultAccount;
-            
-            await  _context.SaveChangesAsync();
+
+            if (requestDto.CurrentBalance != oldBalance)
+            {
+                var balanceDiff = requestDto.CurrentBalance - oldBalance;
+                var transactionType = balanceDiff > 0 ? EnumTransactionType.Income : EnumTransactionType.Expense;
+
+                var systemSubCategory = await _context.SubCategories
+                    .FirstOrDefaultAsync(s => s.UserId == userId && s.IsSystem);
+
+                var activeBudget = await _context.Budgets
+                    .FirstOrDefaultAsync(b => b.UserId == userId && b.IsActive);
+
+                var transaction = new Transaction
+                {
+                    UserId = userId,
+                    BudgetId = activeBudget?.Id,
+                    SubCategoryId = systemSubCategory!.Id,
+                    AccountId = account.Id,
+                    Value = Math.Abs(balanceDiff),
+                    Type = transactionType,
+                    Description = "Balance adjustment",
+                    TransactionDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                    PaymentType = EnumPaymentType.OneTime,
+                    IsPaid = false
+                };
+
+                _context.Transactions.Add(transaction);
+            }
+
+            await _context.SaveChangesAsync();
             var accounts = await GetAllAccountAsync(userId);
             return Result<IEnumerable<GetAccountItemResponseDto>>.Success(accounts);
         }

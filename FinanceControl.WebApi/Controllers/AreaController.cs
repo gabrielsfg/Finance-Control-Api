@@ -43,11 +43,11 @@ namespace FinanceControl.WebApi.Controllers
             if (result.IsFailure)
                 return NotFound(new { error = result.Error });
 
-            return Ok(result.Value);
+            return Created($"/api/area", result.Value);
         }
 
-        [HttpGet("all/{budgetId:int}")]
-        public async Task<IActionResult> GetAllAreaAsync([FromRoute] int budgetId)
+        [HttpGet]
+        public async Task<IActionResult> GetAllAreaAsync([FromQuery] int budgetId)
         {
             var validationResult = this.ValidatePositiveId(budgetId, "budgetId");
             if (validationResult is not null)
@@ -59,7 +59,7 @@ namespace FinanceControl.WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpGet("by-id/{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetAreaByIdAsync([FromRoute] int id)
         {
             var validationResult = this.ValidatePositiveId(id, "id");
@@ -68,21 +68,26 @@ namespace FinanceControl.WebApi.Controllers
 
             var userId = GetUserId();
 
-            var result = await _areaService.GetAreaByIdAync(id, userId);
+            var result = await _areaService.GetAreaByIdAsync(id, userId);
 
             if (result == null)
-                return NotFound("Area not found.");
+                return NotFound(new { error = "Area not found." });
 
             return Ok(result);
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> UpdateAreaAsync([FromBody] UpdateAreaRequestDto requestDto)
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> UpdateAreaAsync([FromRoute] int id, [FromBody] UpdateAreaRequestDto requestDto)
         {
+            var validationId = this.ValidatePositiveId(id, "id");
+            if (validationId is not null)
+                return validationId;
+
             var validationResult = _updateAreaValidator.Validate(requestDto);
             if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
+            requestDto.Id = id;
             var userId = GetUserId();
 
             var result = await _areaService.UpdateAreaAsync(requestDto, userId);

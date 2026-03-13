@@ -1,4 +1,4 @@
-﻿using FinanceControl.Domain.Interfaces.Service;
+using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Services.Extensions;
 using FinanceControl.Services.Validations;
 using FinanceControl.Shared.Dtos.Request;
@@ -17,10 +17,10 @@ namespace FinanceControl.WebApi.Controllers
     public class BudgetController : BaseController
     {
         private readonly IBudgetService _budgetService;
-        private readonly IValidator<CreateBudgetResquestDto> _createBudgetValidator;
+        private readonly IValidator<CreateBudgetRequestDto> _createBudgetValidator;
         private readonly IValidator<UpdateBudgetRequestDto> _updateBudgetValidator;
 
-        public BudgetController(IBudgetService budgetService, IValidator<CreateBudgetResquestDto> createBudgetValidator, IValidator<UpdateBudgetRequestDto> updateBudgetValidator)
+        public BudgetController(IBudgetService budgetService, IValidator<CreateBudgetRequestDto> createBudgetValidator, IValidator<UpdateBudgetRequestDto> updateBudgetValidator)
         {
             _budgetService = budgetService;
             _createBudgetValidator = createBudgetValidator;
@@ -28,19 +28,19 @@ namespace FinanceControl.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBudgetAsync([FromBody] CreateBudgetResquestDto requestDto)
+        public async Task<IActionResult> CreateBudgetAsync([FromBody] CreateBudgetRequestDto requestDto)
         {
-            var validatonResult = _createBudgetValidator.Validate(requestDto);
-            if (validatonResult.ToActionResult() is { } errorResult)
+            var validationResult = _createBudgetValidator.Validate(requestDto);
+            if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
 
             var result = await _budgetService.CreateBudgetAsync(requestDto, userId);
-            return Ok(result);
+            return Created($"/api/budget", result.Value);
         }
 
-        [HttpGet("all")]
+        [HttpGet]
         public async Task<IActionResult> GetAllBudgetsAsync()
         {
             var userId = GetUserId();
@@ -50,7 +50,7 @@ namespace FinanceControl.WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpGet("by-id/{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetBudgetByIdAsync([FromRoute]int id)
         {
             var validationResult = this.ValidatePositiveId(id, "id");
@@ -61,22 +61,42 @@ namespace FinanceControl.WebApi.Controllers
             var result = await _budgetService.GetBudgetByIdAsync(id, userId);
 
             if (result == null)
-                return NotFound("Category not found.");
+                return NotFound(new { error = "Budget not found." });
             return Ok(result);
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> UpdateBudgetAsync([FromBody]UpdateBudgetRequestDto requestDto)
+        [HttpGet("{id:int}/allocation")]
+        public async Task<IActionResult> GetBudgetWithAllocationsAsync([FromRoute] int id)
         {
-            var validatonResult = _updateBudgetValidator.Validate(requestDto);
+            var validationResult = this.ValidatePositiveId(id, "id");
+            if (validationResult is not null)
+                return validationResult;
 
-            if (validatonResult.ToActionResult() is { } errorResult)
+            var userId = GetUserId();
+            var result = await _budgetService.GetBudgetWithAllocationsAsync(id, userId);
+
+            if (result == null)
+                return NotFound(new { error = "Budget not found." });
+            return Ok(result);
+        }
+
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> UpdateBudgetAsync([FromRoute] int id, [FromBody]UpdateBudgetRequestDto requestDto)
+        {
+            var validationId = this.ValidatePositiveId(id, "id");
+            if (validationId is not null)
+                return validationId;
+
+            var validationResult = _updateBudgetValidator.Validate(requestDto);
+
+            if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
+            requestDto.Id = id;
             var userId = GetUserId();
             var result = await _budgetService.UpdateBudgetAsync(requestDto, userId);
 
-            if(result.IsFailure)
+            if (result.IsFailure)
                 return NotFound(new { error = result.Error });
 
             return Ok(result.Value);

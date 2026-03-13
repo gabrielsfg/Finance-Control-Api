@@ -1,25 +1,11 @@
-﻿using FinanceControl.Domain.Enums;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Enums;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FinanceControl.Services.Validations
 {
     public class CreateTransactionValidator : AbstractValidator<CreateTransactionRequestDto>
     {
-        private static readonly string[] ValidTypes =
-            Enum.GetNames(typeof(EnumTransactionType));
-
-        private static readonly string[] ValidPaymentTypes =
-            Enum.GetNames(typeof(EnumPaymentType));
-
-        private static readonly string[] ValidRecurrenceTypes =
-            Enum.GetNames(typeof(EnumRecurrenceType));
-
         public CreateTransactionValidator()
         {
             RuleFor(x => x.SubCategoryId)
@@ -31,36 +17,30 @@ namespace FinanceControl.Services.Validations
             RuleFor(x => x.Value)
                 .GreaterThan(0).WithMessage("Value must be greater than 0.");
 
-            RuleFor(x => x.Type)
-                .NotEmpty().WithMessage("Type is required.")
-                .Must(t => ValidTypes.Contains(t, StringComparer.OrdinalIgnoreCase))
-                .WithMessage($"Type must be one of: {string.Join(", ", ValidTypes)}.");
+            RuleFor(x => x.Type).IsInEnum()
+                .WithMessage($"Type must be one of: {string.Join(", ", Enum.GetNames<EnumTransactionType>())}.");
 
-            RuleFor(x => x.PaymentType)
-                .NotEmpty().WithMessage("PaymentType is required.")
-                .Must(p => ValidPaymentTypes.Contains(p, StringComparer.OrdinalIgnoreCase))
-                .WithMessage($"PaymentType must be one of: {string.Join(", ", ValidPaymentTypes)}.");
+            RuleFor(x => x.PaymentType).IsInEnum()
+                .WithMessage($"PaymentType must be one of: {string.Join(", ", Enum.GetNames<EnumPaymentType>())}.");
 
             RuleFor(x => x.TransactionDate)
                 .NotEmpty().WithMessage("TransactionDate is required.");
 
             RuleFor(x => x.TotalInstallments)
                 .GreaterThan(1).WithMessage("TotalInstallments must be greater than 1.")
-                .When(x => string.Equals(x.PaymentType, nameof(EnumPaymentType.Installment), StringComparison.OrdinalIgnoreCase));
+                .When(x => x.PaymentType == EnumPaymentType.Installment);
 
             RuleFor(x => x.TotalInstallments)
                 .Null().WithMessage("TotalInstallments should only be set when PaymentType is Installment.")
-                .When(x => !string.Equals(x.PaymentType, nameof(EnumPaymentType.Installment), StringComparison.OrdinalIgnoreCase));
+                .When(x => x.PaymentType != EnumPaymentType.Installment);
+
+            RuleFor(x => x.Recurrence).IsInEnum()
+                .WithMessage($"Recurrence must be one of: {string.Join(", ", Enum.GetNames<EnumRecurrenceType>())}.")
+                .When(x => x.Recurrence.HasValue);
 
             RuleFor(x => x.Recurrence)
-                .Must(r => ValidRecurrenceTypes.Contains(r, StringComparer.OrdinalIgnoreCase))
-                .WithMessage($"Recurrence must be one of: {string.Join(", ", ValidRecurrenceTypes)}.")
-                .When(x => !string.IsNullOrEmpty(x.Recurrence));
-
-            RuleFor(x => x.Recurrence)
-                .NotEmpty().WithMessage("Recurrence is required when PaymentType is Recurring.")
-                .When(x => string.Equals(x.PaymentType, nameof(EnumPaymentType.Recurring), StringComparison.OrdinalIgnoreCase));
-
+                .NotNull().WithMessage("Recurrence is required when PaymentType is Recurring.")
+                .When(x => x.PaymentType == EnumPaymentType.Recurring);
         }
     }
 }

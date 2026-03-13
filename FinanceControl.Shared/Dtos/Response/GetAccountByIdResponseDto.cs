@@ -1,10 +1,7 @@
-﻿using System;
+using FinanceControl.Shared.Dtos.Others;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace FinanceControl.Shared.Dtos.Respose
+namespace FinanceControl.Shared.Dtos.Response
 {
     public class GetAccountByIdResponseDto
     {
@@ -13,5 +10,6 @@ namespace FinanceControl.Shared.Dtos.Respose
         public int CurrentAmount { get; set; }
         public int? GoalAmount {  get; set; }
         public bool IsDefaultAccount { get; set; }
+        public List<RecentTransactionDto> RecentTransactions { get; set; } = [];
     }
 }

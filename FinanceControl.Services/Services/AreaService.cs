@@ -1,8 +1,8 @@
-﻿using FinanceControl.Data.Data;
+using FinanceControl.Data.Data;
 using FinanceControl.Domain.Entities;
 using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Shared.Dtos.Request;
-using FinanceControl.Shared.Dtos.Respose;
+using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -53,7 +53,7 @@ namespace FinanceControl.Services.Services
 
         }
 
-        public async Task<GetAreaByIdResponseDto?> GetAreaByIdAync(int id, int userId)
+        public async Task<GetAreaByIdResponseDto?> GetAreaByIdAsync(int id, int userId)
         {
             return await _context.Areas.Where(a => a.Id == id && a.UserId == userId).Select(a => new GetAreaByIdResponseDto
             {
