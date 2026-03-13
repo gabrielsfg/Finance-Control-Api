@@ -53,7 +53,7 @@ namespace FinanceControl.Services.Services
 
         }
 
-        public async Task<GetAreaByIdResponseDto?> GetAreaByIdAync(int id, int userId)
+        public async Task<GetAreaByIdResponseDto?> GetAreaByIdAsync(int id, int userId)
         {
             return await _context.Areas.Where(a => a.Id == id && a.UserId == userId).Select(a => new GetAreaByIdResponseDto
             {

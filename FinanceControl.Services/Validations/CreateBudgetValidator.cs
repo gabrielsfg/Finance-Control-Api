@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace FinanceControl.Services.Validations
 {
-    public class CreateBudgetValidator : AbstractValidator<CreateBudgetResquestDto>
+    public class CreateBudgetValidator : AbstractValidator<CreateBudgetRequestDto>
     {
         public CreateBudgetValidator()
         {

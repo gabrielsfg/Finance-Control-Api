@@ -2,7 +2,7 @@ using FinanceControl.Shared.Enums;
 
 namespace FinanceControl.Shared.Dtos.Request
 {
-    public class CreateBudgetResquestDto
+    public class CreateBudgetRequestDto
     {
         public string Name { get; set; }
         public int StartDate { get; set; }

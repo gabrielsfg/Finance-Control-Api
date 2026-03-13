@@ -18,7 +18,7 @@ namespace FinanceControl.Services.Services
             _context = context;
         }
 
-        public async Task<Result<GetBudgetWithAreasResponseDto>> CreateBudgetAsync(CreateBudgetResquestDto requestDto, int userId)
+        public async Task<Result<GetBudgetWithAreasResponseDto>> CreateBudgetAsync(CreateBudgetRequestDto requestDto, int userId)
         {
             var budget = new Budget
             {

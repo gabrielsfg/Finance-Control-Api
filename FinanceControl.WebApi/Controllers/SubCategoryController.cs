@@ -32,8 +32,8 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateSubCategoryAsync([FromBody] CreateSubCategoryRequestDto requestDto)
         {
-            var validatonResult = _createSubCategoryValidator.Validate(requestDto);
-            if(validatonResult.ToActionResult() is { } errorResult)
+            var validationResult = _createSubCategoryValidator.Validate(requestDto);
+            if(validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
@@ -43,10 +43,10 @@ namespace FinanceControl.WebApi.Controllers
             if (result.IsFailure)
                 return NotFound(new { error = result.Error });
 
-            return Ok(result.Value);
+            return Created($"/api/subcategory", result.Value);
         }
 
-        [HttpGet("all")]
+        [HttpGet]
         public async Task<IActionResult> GetAllSubCategoryAsync()
         {
             var userId = GetUserId();
@@ -55,7 +55,7 @@ namespace FinanceControl.WebApi.Controllers
             return Ok(result);
         }
 
-        [HttpGet("by-id/{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetSubCategoryByIdAsync([FromRoute]int id)
         {
             var validationResult = this.ValidatePositiveId(id, "id");
@@ -67,18 +67,23 @@ namespace FinanceControl.WebApi.Controllers
             var result = await _subCategoryService.GetSubCategoryByIdAsync(id, userId);
 
             if (result == null)
-                return NotFound("SubCategory not found.");
+                return NotFound(new { error = "SubCategory not found." });
 
             return Ok(result);
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> UpdateSubCategoryAsync([FromBody]UpdateSubCategoryRequestDto requestDto)
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> UpdateSubCategoryAsync([FromRoute] int id, [FromBody]UpdateSubCategoryRequestDto requestDto)
         {
-            var validatonResult = _updateSubCategoryValidator.Validate(requestDto);
-            if (validatonResult.ToActionResult() is { } errorResult)
+            var validationId = this.ValidatePositiveId(id, "id");
+            if (validationId is not null)
+                return validationId;
+
+            var validationResult = _updateSubCategoryValidator.Validate(requestDto);
+            if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
+            requestDto.Id = id;
             var userId = GetUserId();
 
             var result = await _subCategoryService.UpdateSubCategoryAsync(requestDto, userId);

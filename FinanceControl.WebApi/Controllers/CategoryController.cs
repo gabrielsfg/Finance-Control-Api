@@ -30,18 +30,18 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCategoryAsync([FromBody]CreateCategoryRequestDto requestDto)
         {
-            var validatonResult = _createCategoryValidator.Validate(requestDto);
-            if (validatonResult.ToActionResult() is { } errorResult)
+            var validationResult = _createCategoryValidator.Validate(requestDto);
+            if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
             var userId = GetUserId();
 
             var result = await _categoryService.CreateCategoryAsync(requestDto, userId);
 
-            return Ok(result.Value);
+            return Created($"/api/category", result.Value);
         }
 
-        
+
         [HttpGet]
         public async Task<IActionResult> GetAllCategoriesAsync()
         {

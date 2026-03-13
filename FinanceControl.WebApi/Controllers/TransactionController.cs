@@ -45,7 +45,7 @@ namespace FinanceControl.WebApi.Controllers
             if (result.IsFailure)
                 return NotFound(new { error = result.Error });
 
-            return Ok(result.Value);
+            return Created($"/api/transaction", result.Value);
         }
 
         [HttpGet]
@@ -116,7 +116,7 @@ namespace FinanceControl.WebApi.Controllers
 
             var result = await _transactionService.GetTransactionByIdAsync(id, userId);
             if (result is null)
-                return NotFound("Transaction not found.");
+                return NotFound(new { error = "Transaction not found." });
 
             return Ok(result);
         }
