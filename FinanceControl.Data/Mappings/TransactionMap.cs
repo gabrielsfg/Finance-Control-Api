@@ -26,7 +26,6 @@ namespace FinanceControl.Data.Mappings
                 .IsRequired();
             builder.Property(t => t.InstallmentNumber);
             builder.Property(t => t.TotalInstallments);
-            builder.Property(t => t.IsPaid).IsRequired();
             builder.Property(t => t.CreatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasDefaultValueSql("timezone('America/Sao_Paulo', now())")

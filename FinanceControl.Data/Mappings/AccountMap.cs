@@ -16,8 +16,12 @@ namespace FinanceControl.Data.Mappings
             builder.ToTable("Accounts");
             builder.HasKey(a => a.Id);
             builder.Property(a => a.Name);
-            builder.Property(a => a.CurrentBalance);
+            builder.Property(a => a.AccountType)
+                .HasConversion<string>()
+                .IsRequired();
             builder.Property(a => a.GoalAmount);
+            builder.Property(a => a.BillingDueDay);
+            builder.Property(a => a.CreditLimit);
             builder.Property(a => a.IsDefaultAccount);
             builder.Property(a => a.CreatedAt)
                 .HasColumnType("timestamp without time zone")

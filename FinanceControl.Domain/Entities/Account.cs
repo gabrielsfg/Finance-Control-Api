@@ -1,4 +1,5 @@
 ﻿using FinanceControl.Domain.Common;
+using FinanceControl.Shared.Enums;
 
 
 namespace FinanceControl.Domain.Entities
@@ -6,10 +7,12 @@ namespace FinanceControl.Domain.Entities
     public class Account : OwnedEntity
     {
         public string Name { get; set; }
-        public int CurrentBalance { get; set; }
+        public EnumAccountType AccountType { get; set; }
         public int? GoalAmount {  get; set; }
         public bool IsDefaultAccount { get; set; }
         public bool IsExcludedFromNetWorth { get; set; } = false;
+        public int? BillingDueDay { get; set; }
+        public int? CreditLimit { get; set; }
         public ICollection<Transaction> Transactions { get; set; } = [];
         public ICollection<RecurringTransaction> RecurringTransactions { get; set; } = [];
     }

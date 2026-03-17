@@ -142,7 +142,6 @@ namespace FinanceControl.Services.Services
                     PaymentType = t.PaymentType,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
-                    IsPaid = t.IsPaid
                 })
                 .FirstOrDefaultAsync();
         }
@@ -379,7 +378,6 @@ namespace FinanceControl.Services.Services
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.OneTime,
-                IsPaid = false
             };
 
             _context.Transactions.Add(transaction);
@@ -407,7 +405,6 @@ namespace FinanceControl.Services.Services
                 PaymentType = EnumPaymentType.Installment,
                 InstallmentNumber = 1,
                 TotalInstallments = dto.TotalInstallments,
-                IsPaid = false
             };
 
             _context.Transactions.Add(parent);
@@ -431,7 +428,6 @@ namespace FinanceControl.Services.Services
                     PaymentType = EnumPaymentType.Installment,
                     InstallmentNumber = i,
                     TotalInstallments = dto.TotalInstallments,
-                    IsPaid = false
                 };
 
                 _context.Transactions.Add(installment);
@@ -477,7 +473,6 @@ namespace FinanceControl.Services.Services
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.Recurring,
-                IsPaid = false
             };
 
             _context.Transactions.Add(transaction);
@@ -505,7 +500,6 @@ namespace FinanceControl.Services.Services
                     PaymentType = t.PaymentType,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
-                    IsPaid = t.IsPaid
                 });
         }
 
@@ -530,7 +524,6 @@ namespace FinanceControl.Services.Services
                     PaymentType = t.PaymentType,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
-                    IsPaid = t.IsPaid
                 })
                 .ToListAsync();
 

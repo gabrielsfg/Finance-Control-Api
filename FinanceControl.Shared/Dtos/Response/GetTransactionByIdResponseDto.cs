@@ -19,6 +19,5 @@ namespace FinanceControl.Shared.Dtos.Response
         public EnumPaymentType PaymentType { get; set; }
         public int? InstallmentNumber { get; set; }
         public int? TotalInstallments { get; set; }
-        public bool IsPaid { get; set; }
     }
 }

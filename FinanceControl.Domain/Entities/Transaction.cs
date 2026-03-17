@@ -22,7 +22,6 @@ namespace FinanceControl.Domain.Entities
         public EnumPaymentType PaymentType { get; set; }
         public int? InstallmentNumber { get; set; }
         public int? TotalInstallments { get; set; }
-        public bool IsPaid { get; set; }
         public Budget? Budget { get; set; }
         public SubCategory SubCategory { get; set; }
         public Account Account { get; set; }

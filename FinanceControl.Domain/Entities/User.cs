@@ -7,6 +7,10 @@ namespace FinanceControl.Domain.Entities
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string Name { get; set; }
-        public Boolean IsActive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
+        public int FailedLoginAttempts { get; set; } = 0;
+        public DateTime? LockoutEnd { get; set; }
+        public string PreferredCurrency { get; set; } = "BRL";
+        public string PreferredLanguage { get; set; } = "pt-BR";
     }
 }

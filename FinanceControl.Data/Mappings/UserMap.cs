@@ -18,7 +18,11 @@ namespace FinanceControl.Data.Mappings
             builder.Property(u => u.Email);
             builder.Property(u => u.PasswordHash);
             builder.Property(u => u.Name);
-            builder.Property(u => u.IsActive).HasDefaultValue(1);
+            builder.Property(u => u.IsActive).HasDefaultValue(true);
+            builder.Property(u => u.FailedLoginAttempts).HasDefaultValue(0);
+            builder.Property(u => u.LockoutEnd);
+            builder.Property(u => u.PreferredCurrency).HasDefaultValue("BRL").HasMaxLength(3);
+            builder.Property(u => u.PreferredLanguage).HasDefaultValue("pt-BR").HasMaxLength(10);
             builder.Property(u => u.CreatedAt)
                 .HasColumnType("timestamp without time zone")
                 .HasDefaultValueSql("timezone('America/Sao_Paulo', now())")
