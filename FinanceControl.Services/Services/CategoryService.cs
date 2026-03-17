@@ -59,26 +59,18 @@ namespace FinanceControl.Services.Services
             return categories;
         }
 
-        public async Task<Result<IEnumerable<CategoryResponseDto>>> UpdateCategoriesAsync(UpdateCategoriesRequestDto requestDto, int userId)
+        public async Task<Result<IEnumerable<CategoryResponseDto>>> UpdateCategoryAsync(UpdateCategoryRequestDto requestDto, int userId)
         {
-            var ids = requestDto.Categories.Select(c => c.Id).ToList();
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.Id == requestDto.Id);
 
-            var categoriesToUpdate = await _context.Categories
-                .Where(c => c.UserId == userId && ids.Contains(c.Id))
-                .ToListAsync();
+            if (category == null)
+                return Result<IEnumerable<CategoryResponseDto>>.Failure($"Category with id {requestDto.Id} not found.");
 
-            foreach (var item in requestDto.Categories)
-            {
-                var category = categoriesToUpdate.FirstOrDefault(c => c.Id == item.Id);
+            if (category.IsSystem)
+                return Result<IEnumerable<CategoryResponseDto>>.Failure($"Category with id {requestDto.Id} is a system category and cannot be modified.");
 
-                if (category == null)
-                    return Result<IEnumerable<CategoryResponseDto>>.Failure($"Category with id {item.Id} not found.");
-
-                if (category.IsSystem)
-                    return Result<IEnumerable<CategoryResponseDto>>.Failure($"Category with id {item.Id} is a system category and cannot be modified.");
-
-                category.Name = item.Name;
-            }
+            category.Name = requestDto.Name;
 
             await _context.SaveChangesAsync();
 

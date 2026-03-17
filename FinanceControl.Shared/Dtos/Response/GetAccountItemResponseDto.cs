@@ -12,5 +12,6 @@ namespace FinanceControl.Shared.Dtos.Response
         public string Name { get; set; }
         public int CurrentAmount { get; set; }
         public Boolean IsDefaultAccount { get; set; }
+        public bool IsExcludedFromNetWorth { get; set; }
     }
 }

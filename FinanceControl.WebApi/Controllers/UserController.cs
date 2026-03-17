@@ -32,11 +32,11 @@ namespace FinanceControl.WebApi.Controllers
             if (validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
-            var user = await _userService.RegisterUserAsync(requestDto);
-            if (user is null)
-                return BadRequest("Email already existis.");
+            var token = await _userService.RegisterUserAsync(requestDto);
+            if (token is null)
+                return BadRequest(new { error = "Email already exists." });
 
-            return Ok(user);
+            return StatusCode(201, token);
         }
 
         [HttpPost("login")]
@@ -48,7 +48,7 @@ namespace FinanceControl.WebApi.Controllers
 
             var token = await _userService.UserLoginAsync(requestDto);
             if (token is null)
-                return BadRequest("Invalid email or password.");
+                return BadRequest(new { error = "Invalid email or password." });
             return Ok(token);
         }
     }

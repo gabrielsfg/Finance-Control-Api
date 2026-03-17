@@ -1,5 +1,4 @@
-﻿using FinanceControl.Domain.Entities;
-using FinanceControl.Shared.Dtos;
+﻿using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
 using System;
 using System.Collections.Generic;
@@ -11,7 +10,7 @@ namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface IUserService
     {
-        Task<User?> RegisterUserAsync(CreateUserRequestDto requestDto);
+        Task<string?> RegisterUserAsync(CreateUserRequestDto requestDto);
 
         Task<string?> UserLoginAsync(UserLoginRequestDto requestDto);
     }

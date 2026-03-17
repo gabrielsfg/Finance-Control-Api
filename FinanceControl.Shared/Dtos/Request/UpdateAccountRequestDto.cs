@@ -13,5 +13,6 @@ namespace FinanceControl.Shared.Dtos.Request
         public int CurrentBalance { get; set; }
         public int? GoalAmount { get; set; }
         public bool IsDefaultAccount { get; set; }
+        public bool IsExcludedFromNetWorth { get; set; }
     }
 }

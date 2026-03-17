@@ -10,6 +10,7 @@ namespace FinanceControl.Shared.Dtos.Response
         public int CurrentAmount { get; set; }
         public int? GoalAmount {  get; set; }
         public bool IsDefaultAccount { get; set; }
+        public bool IsExcludedFromNetWorth { get; set; }
         public List<RecentTransactionDto> RecentTransactions { get; set; } = [];
     }
 }

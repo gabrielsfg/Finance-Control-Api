@@ -33,7 +33,7 @@ namespace FinanceControl.Services.Services
             _configuration = configuration;
         }
 
-        public async Task<User?> RegisterUserAsync(CreateUserRequestDto requestDto)
+        public async Task<string?> RegisterUserAsync(CreateUserRequestDto requestDto)
         {
             requestDto.Email = requestDto.Email.ToLower();
 
@@ -69,7 +69,7 @@ namespace FinanceControl.Services.Services
             _context.SubCategories.Add(systemSubCategory);
             await _context.SaveChangesAsync();
 
-            return user;
+            return CreateToken(user);
         }
 
         public async Task<string?> UserLoginAsync(UserLoginRequestDto requestDto)

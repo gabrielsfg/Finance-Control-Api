@@ -32,7 +32,8 @@ namespace FinanceControl.Services.Services
                 Name = requestDto.Name,
                 CurrentBalance = requestDto.CurrentBalance,
                 GoalAmount = requestDto.GoalAmount,
-                IsDefaultAccount = requestDto.IsDefaultAccount
+                IsDefaultAccount = requestDto.IsDefaultAccount,
+                IsExcludedFromNetWorth = requestDto.IsExcludedFromNetWorth
             };
 
             var hasAnyAccount = await _context.Accounts.AnyAsync(a => a.UserId == userId);
@@ -64,7 +65,8 @@ namespace FinanceControl.Services.Services
                     Id = a.Id,
                     Name = a.Name,
                     CurrentAmount = a.CurrentBalance,
-                    IsDefaultAccount = a.IsDefaultAccount
+                    IsDefaultAccount = a.IsDefaultAccount,
+                    IsExcludedFromNetWorth = a.IsExcludedFromNetWorth
                 })
                 .ToListAsync();
 
@@ -111,6 +113,7 @@ namespace FinanceControl.Services.Services
                 CurrentAmount = account.CurrentBalance,
                 GoalAmount = account.GoalAmount,
                 IsDefaultAccount = account.IsDefaultAccount,
+                IsExcludedFromNetWorth = account.IsExcludedFromNetWorth,
                 RecentTransactions = recentTransactions
             };
         }
@@ -128,6 +131,7 @@ namespace FinanceControl.Services.Services
             account.CurrentBalance = requestDto.CurrentBalance;
             account.GoalAmount = requestDto.GoalAmount;
             account.IsDefaultAccount = requestDto.IsDefaultAccount;
+            account.IsExcludedFromNetWorth = requestDto.IsExcludedFromNetWorth;
 
             if (requestDto.CurrentBalance != oldBalance)
             {

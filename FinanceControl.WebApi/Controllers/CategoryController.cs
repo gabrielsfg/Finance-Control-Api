@@ -18,12 +18,12 @@ namespace FinanceControl.WebApi.Controllers
     {
         private readonly ICategoryService _categoryService;
         private readonly IValidator<CreateCategoryRequestDto> _createCategoryValidator;
-        private readonly IValidator<UpdateCategoriesRequestDto> _updateCategoriesValidator;
-        public CategoryController(ICategoryService categoryService, IValidator<CreateCategoryRequestDto> createCategoryValidator, IValidator<UpdateCategoriesRequestDto> updateCategoriesValidator)
+        private readonly IValidator<UpdateCategoryRequestDto> _updateCategoryValidator;
+        public CategoryController(ICategoryService categoryService, IValidator<CreateCategoryRequestDto> createCategoryValidator, IValidator<UpdateCategoryRequestDto> updateCategoryValidator)
         {
             _categoryService = categoryService;
             _createCategoryValidator = createCategoryValidator;
-            _updateCategoriesValidator = updateCategoriesValidator;
+            _updateCategoryValidator = updateCategoryValidator;
         }
 
         
@@ -52,15 +52,20 @@ namespace FinanceControl.WebApi.Controllers
         }
 
         
-        [HttpPatch]
-        public async Task<IActionResult> UpdateCategoriesAsync([FromBody] UpdateCategoriesRequestDto requestDto)
+        [HttpPatch("{id:int}")]
+        public async Task<IActionResult> UpdateCategoryAsync([FromRoute] int id, [FromBody] UpdateCategoryRequestDto requestDto)
         {
-            var validationResult = _updateCategoriesValidator.Validate(requestDto);
+            var validationId = this.ValidatePositiveId(id, "id");
+            if (validationId is not null)
+                return validationId;
+
+            var validationResult = _updateCategoryValidator.Validate(requestDto);
             if (validationResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
+            requestDto.Id = id;
             var userId = GetUserId();
-            var result = await _categoryService.UpdateCategoriesAsync(requestDto, userId);
+            var result = await _categoryService.UpdateCategoryAsync(requestDto, userId);
 
             if (result.IsFailure)
                 return NotFound(new { error = result.Error });
