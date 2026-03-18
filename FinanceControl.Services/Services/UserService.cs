@@ -4,6 +4,8 @@ using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Services.Validations;
 using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Dtos.Response;
+using FinanceControl.Shared.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -72,18 +74,49 @@ namespace FinanceControl.Services.Services
             return CreateToken(user);
         }
 
-        public async Task<string?> UserLoginAsync(UserLoginRequestDto requestDto)
+        public async Task<LoginResult> UserLoginAsync(UserLoginRequestDto requestDto)
         {
             requestDto.Email = requestDto.Email.ToLower();
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == requestDto.Email);
             if (user is null)
-                return null;
-            
+                return LoginResult.Failed();
+
+            if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
+                return LoginResult.Locked(user.LockoutEnd.Value);
+
             if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, requestDto.Password) == PasswordVerificationResult.Failed)
+            {
+                user.FailedLoginAttempts++;
+
+                if (user.FailedLoginAttempts >= 5)
+                    user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
+
+                await _context.SaveChangesAsync();
+                return LoginResult.Failed();
+            }
+
+            user.FailedLoginAttempts = 0;
+            user.LockoutEnd = null;
+            await _context.SaveChangesAsync();
+
+            return LoginResult.Success(CreateToken(user));
+        }
+
+        public async Task<GetUserMeResponseDto?> GetUserByIdAsync(int userId)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user is null)
                 return null;
 
-            return CreateToken(user);
+            return new GetUserMeResponseDto
+            {
+                Name = user.Name,
+                Email = user.Email,
+                PreferredCurrency = user.PreferredCurrency,
+                PreferredLanguage = user.PreferredLanguage,
+                CreatedAt = user.CreatedAt
+            };
         }
 
         private string CreateToken(User user)

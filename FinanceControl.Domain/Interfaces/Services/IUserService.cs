@@ -1,5 +1,7 @@
 ﻿using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Dtos.Response;
+using FinanceControl.Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +14,8 @@ namespace FinanceControl.Domain.Interfaces.Service
     {
         Task<string?> RegisterUserAsync(CreateUserRequestDto requestDto);
 
-        Task<string?> UserLoginAsync(UserLoginRequestDto requestDto);
+        Task<LoginResult> UserLoginAsync(UserLoginRequestDto requestDto);
+
+        Task<GetUserMeResponseDto?> GetUserByIdAsync(int userId);
     }
 }

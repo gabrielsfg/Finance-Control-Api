@@ -5,8 +5,10 @@ using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.WebApi.Controllers.Base;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FinanceControl.WebApi.Controllers
 {
@@ -25,6 +27,7 @@ namespace FinanceControl.WebApi.Controllers
             _userLoginValidator = userLoginValidator;
         }
 
+        [EnableRateLimiting("auth")]
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUserAsync([FromBody]CreateUserRequestDto requestDto)
         {
@@ -39,6 +42,7 @@ namespace FinanceControl.WebApi.Controllers
             return StatusCode(201, token);
         }
 
+        [EnableRateLimiting("auth")]
         [HttpPost("login")]
         public async Task<IActionResult> UserLoginAsync([FromBody]UserLoginRequestDto requestDto)
         {
@@ -46,10 +50,29 @@ namespace FinanceControl.WebApi.Controllers
             if (validatonResult.ToActionResult() is { } errorResult)
                 return errorResult;
 
-            var token = await _userService.UserLoginAsync(requestDto);
-            if (token is null)
+            var result = await _userService.UserLoginAsync(requestDto);
+
+            if (result.IsLocked)
+            {
+                var remainingSeconds = (int)Math.Ceiling((result.LockoutEnd!.Value - DateTime.UtcNow).TotalSeconds);
+                return StatusCode(423, new { error = "Account is locked.", remainingSeconds });
+            }
+
+            if (!result.IsSuccess)
                 return BadRequest(new { error = "Invalid email or password." });
-            return Ok(token);
+
+            return Ok(result.Token);
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMeAsync()
+        {
+            var userId = GetUserId();
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user is null)
+                return NotFound(new { error = "User not found." });
+            return Ok(user);
         }
     }
 }

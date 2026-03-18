@@ -19,7 +19,7 @@ namespace FinanceControl.Data.Mappings
             builder.Property(t => t.Type)
                 .HasConversion<string>()
                 .IsRequired();
-            builder.Property(t => t.Description).IsRequired();
+            builder.Property(t => t.Description).IsRequired(false);
             builder.Property(t => t.TransactionDate).IsRequired();
             builder.Property(t => t.PaymentType)
                 .HasConversion<string>()
