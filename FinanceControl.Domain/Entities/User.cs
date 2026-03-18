@@ -12,5 +12,9 @@ namespace FinanceControl.Domain.Entities
         public DateTime? LockoutEnd { get; set; }
         public string PreferredCurrency { get; set; } = "BRL";
         public string PreferredLanguage { get; set; } = "pt-BR";
+        public string? Country { get; set; }
+        public bool IsEmailVerified { get; set; } = false;
+        public string? EmailVerificationTokenHash { get; set; }
+        public DateTime? EmailVerificationTokenExpiresAt { get; set; }
     }
 }

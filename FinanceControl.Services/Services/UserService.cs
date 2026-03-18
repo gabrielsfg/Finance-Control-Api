@@ -1,24 +1,18 @@
-﻿using FinanceControl.Data.Data;
+using FinanceControl.Data.Data;
 using FinanceControl.Domain.Entities;
 using FinanceControl.Domain.Interfaces.Service;
-using FinanceControl.Services.Validations;
 using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
-using FluentValidation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FinanceControl.Services.Services
 {
@@ -26,16 +20,19 @@ namespace FinanceControl.Services.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
         public UserService(
-            ApplicationDbContext context, 
-            IConfiguration configuration)
+            ApplicationDbContext context,
+            IConfiguration configuration,
+            IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
-        public async Task<string?> RegisterUserAsync(CreateUserRequestDto requestDto)
+        public async Task<AuthResponseDto?> RegisterUserAsync(CreateUserRequestDto requestDto)
         {
             requestDto.Email = requestDto.Email.ToLower();
 
@@ -71,7 +68,16 @@ namespace FinanceControl.Services.Services
             _context.SubCategories.Add(systemSubCategory);
             await _context.SaveChangesAsync();
 
-            return CreateToken(user);
+            var rawVerificationToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            user.EmailVerificationTokenHash = HashToken(rawVerificationToken);
+            user.EmailVerificationTokenExpiresAt = DateTime.UtcNow.AddHours(24);
+            await _context.SaveChangesAsync();
+
+            var backendUrl = _configuration["AppSettings:BackendUrl"];
+            var verificationLink = $"{backendUrl}/api/user/verify-email?token={Uri.EscapeDataString(rawVerificationToken)}";
+            await _emailService.SendVerificationEmailAsync(user.Email, verificationLink);
+
+            return await CreateAuthResponseAsync(user);
         }
 
         public async Task<LoginResult> UserLoginAsync(UserLoginRequestDto requestDto)
@@ -100,7 +106,7 @@ namespace FinanceControl.Services.Services
             user.LockoutEnd = null;
             await _context.SaveChangesAsync();
 
-            return LoginResult.Success(CreateToken(user));
+            return LoginResult.Success(await CreateAuthResponseAsync(user));
         }
 
         public async Task<GetUserMeResponseDto?> GetUserByIdAsync(int userId)
@@ -115,11 +121,206 @@ namespace FinanceControl.Services.Services
                 Email = user.Email,
                 PreferredCurrency = user.PreferredCurrency,
                 PreferredLanguage = user.PreferredLanguage,
+                Country = user.Country,
+                IsEmailVerified = user.IsEmailVerified,
                 CreatedAt = user.CreatedAt
             };
         }
 
-        private string CreateToken(User user)
+        public async Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken)
+        {
+            var tokenHash = HashToken(refreshToken);
+
+            var stored = await _context.RefreshTokens
+                .Include(rt => rt.User)
+                .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
+
+            if (stored is null || stored.IsRevoked || stored.ExpiresAt <= DateTime.UtcNow)
+                return null;
+
+            stored.IsRevoked = true;
+            await _context.SaveChangesAsync();
+
+            return await CreateAuthResponseAsync(stored.User);
+        }
+
+        public async Task<bool> LogoutAsync(string refreshToken)
+        {
+            var tokenHash = HashToken(refreshToken);
+
+            var stored = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash && !rt.IsRevoked);
+
+            if (stored is null)
+                return false;
+
+            stored.IsRevoked = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task ForgotPasswordAsync(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email.ToLower());
+
+            // Resposta sempre igual para não revelar se o e-mail existe
+            if (user is null)
+                return;
+
+            // Invalida tokens anteriores pendentes do mesmo usuário
+            var existing = await _context.PasswordResetTokens
+                .Where(t => t.UserId == user.Id && !t.IsUsed && t.ExpiresAt > DateTime.UtcNow)
+                .ToListAsync();
+            foreach (var t in existing)
+                t.IsUsed = true;
+
+            var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            var entity = new PasswordResetToken
+            {
+                UserId = user.Id,
+                TokenHash = HashToken(raw),
+                ExpiresAt = DateTime.UtcNow.AddHours(1)
+            };
+
+            _context.PasswordResetTokens.Add(entity);
+            await _context.SaveChangesAsync();
+
+            var frontendUrl = _configuration["AppSettings:FrontendUrl"];
+            var resetLink = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(raw)}";
+
+            await _emailService.SendPasswordResetEmailAsync(user.Email, resetLink);
+        }
+
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            var tokenHash = HashToken(token);
+
+            var stored = await _context.PasswordResetTokens
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && !t.IsUsed && t.ExpiresAt > DateTime.UtcNow);
+
+            if (stored is null)
+                return false;
+
+            stored.IsUsed = true;
+
+            var user = stored.User;
+            user.PasswordHash = new PasswordHasher<User>().HashPassword(user, newPassword);
+            user.FailedLoginAttempts = 0;
+            user.LockoutEnd = null;
+
+            // Revoga todos os refresh tokens ativos do usuário
+            var activeRefreshTokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == user.Id && !rt.IsRevoked)
+                .ToListAsync();
+            foreach (var rt in activeRefreshTokens)
+                rt.IsRevoked = true;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> VerifyEmailAsync(string token)
+        {
+            var tokenHash = HashToken(token);
+
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.EmailVerificationTokenHash == tokenHash &&
+                u.EmailVerificationTokenExpiresAt > DateTime.UtcNow &&
+                !u.IsEmailVerified);
+
+            if (user is null)
+                return false;
+
+            user.IsEmailVerified = true;
+            user.EmailVerificationTokenHash = null;
+            user.EmailVerificationTokenExpiresAt = null;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<GetUserMeResponseDto?> UpdateUserAsync(int userId, PatchUserRequestDto requestDto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user is null)
+                return null;
+
+            if (requestDto.Name is not null)
+                user.Name = requestDto.Name;
+            if (requestDto.PreferredCurrency is not null)
+                user.PreferredCurrency = requestDto.PreferredCurrency;
+            if (requestDto.PreferredLanguage is not null)
+                user.PreferredLanguage = requestDto.PreferredLanguage;
+            if (requestDto.Country is not null)
+                user.Country = requestDto.Country;
+
+            await _context.SaveChangesAsync();
+
+            return new GetUserMeResponseDto
+            {
+                Name = user.Name,
+                Email = user.Email,
+                PreferredCurrency = user.PreferredCurrency,
+                PreferredLanguage = user.PreferredLanguage,
+                Country = user.Country,
+                IsEmailVerified = user.IsEmailVerified,
+                CreatedAt = user.CreatedAt
+            };
+        }
+
+        public async Task<bool> DeleteUserAsync(int userId, string password)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user is null)
+                return false;
+
+            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, password) == PasswordVerificationResult.Failed)
+                return false;
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ResetUserDataAsync(int userId, string password)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user is null)
+                return false;
+
+            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, password) == PasswordVerificationResult.Failed)
+                return false;
+
+            // Remove todos os dados financeiros do usuário
+            // A ordem respeita as FKs: filhos antes dos pais que não têm cascade pelo EF
+            _context.Transactions.RemoveRange(_context.Transactions.Where(t => t.UserId == userId));
+            _context.RecurringTransactions.RemoveRange(_context.RecurringTransactions.Where(t => t.UserId == userId));
+            _context.Budgets.RemoveRange(_context.Budgets.Where(b => b.UserId == userId));
+            _context.Accounts.RemoveRange(_context.Accounts.Where(a => a.UserId == userId));
+            _context.SubCategories.RemoveRange(_context.SubCategories.Where(sc => sc.UserId == userId));
+            _context.Categories.RemoveRange(_context.Categories.Where(c => c.UserId == userId));
+            _context.Areas.RemoveRange(_context.Areas.Where(a => a.UserId == userId));
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        private async Task<AuthResponseDto> CreateAuthResponseAsync(User user)
+        {
+            var accessToken = CreateAccessToken(user);
+            var (rawRefreshToken, refreshTokenEntity) = CreateRefreshToken(user.Id);
+
+            _context.RefreshTokens.Add(refreshTokenEntity);
+            await _context.SaveChangesAsync();
+
+            return new AuthResponseDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = rawRefreshToken
+            };
+        }
+
+        private string CreateAccessToken(User user)
         {
             var claims = new List<Claim>
             {
@@ -128,7 +329,6 @@ namespace FinanceControl.Services.Services
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:Token")!));
-
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
             var tokenDescriptor = new JwtSecurityToken(
@@ -136,11 +336,30 @@ namespace FinanceControl.Services.Services
                 audience: _configuration.GetValue<string>("AppSettings:Audience"),
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(10),
-                signingCredentials: creds
-                );
+                signingCredentials: creds);
 
-            var response = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
-            return response;
+            return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+        }
+
+        private (string raw, RefreshToken entity) CreateRefreshToken(int userId)
+        {
+            var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+
+            var entity = new RefreshToken
+            {
+                UserId = userId,
+                TokenHash = HashToken(raw),
+                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            };
+
+            return (raw, entity);
+        }
+
+        private static string HashToken(string token)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToHexString(bytes);
         }
     }
 }

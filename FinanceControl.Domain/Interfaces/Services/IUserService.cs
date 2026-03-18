@@ -12,10 +12,26 @@ namespace FinanceControl.Domain.Interfaces.Service
 {
     public interface IUserService
     {
-        Task<string?> RegisterUserAsync(CreateUserRequestDto requestDto);
+        Task<AuthResponseDto?> RegisterUserAsync(CreateUserRequestDto requestDto);
 
         Task<LoginResult> UserLoginAsync(UserLoginRequestDto requestDto);
 
         Task<GetUserMeResponseDto?> GetUserByIdAsync(int userId);
+
+        Task<AuthResponseDto?> RefreshTokenAsync(string refreshToken);
+
+        Task<bool> LogoutAsync(string refreshToken);
+
+        Task ForgotPasswordAsync(string email);
+
+        Task<bool> ResetPasswordAsync(string token, string newPassword);
+
+        Task<bool> VerifyEmailAsync(string token);
+
+        Task<GetUserMeResponseDto?> UpdateUserAsync(int userId, PatchUserRequestDto requestDto);
+
+        Task<bool> DeleteUserAsync(int userId, string password);
+
+        Task<bool> ResetUserDataAsync(int userId, string password);
     }
 }

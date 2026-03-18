@@ -3,6 +3,7 @@ using FinanceControl.Domain.Interfaces.Services;
 using FinanceControl.Services.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,7 @@ namespace FinanceControl.Services.Extensions
         public static IServiceCollection AddAplicationServices(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IBudgetService, BudgetService>();
