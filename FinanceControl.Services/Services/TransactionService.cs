@@ -79,6 +79,85 @@ namespace FinanceControl.Services.Services
                 .ToListAsync();
         }
 
+        public async Task<PagedResponse<GetTransactionResponseDto>> GetAllTransactionsPagedAsync(GetTransactionsQueryDto query, int userId)
+        {
+            var q = _context.Transactions.Where(t => t.UserId == userId);
+
+            if (query.StartDate.HasValue)
+                q = q.Where(t => t.TransactionDate >= query.StartDate.Value);
+
+            if (query.EndDate.HasValue)
+                q = q.Where(t => t.TransactionDate <= query.EndDate.Value);
+
+            if (query.Type.HasValue)
+                q = q.Where(t => t.Type == query.Type.Value);
+
+            if (query.PaymentType.HasValue)
+                q = q.Where(t => t.PaymentType == query.PaymentType.Value);
+
+            if (query.AccountId.HasValue)
+                q = q.Where(t => t.AccountId == query.AccountId.Value);
+
+            if (query.SubCategoryId.HasValue)
+                q = q.Where(t => t.SubCategoryId == query.SubCategoryId.Value);
+
+            if (query.MinValue.HasValue)
+                q = q.Where(t => t.Value >= query.MinValue.Value);
+
+            if (query.MaxValue.HasValue)
+                q = q.Where(t => t.Value <= query.MaxValue.Value);
+
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                var search = query.Search.ToLower();
+                q = q.Where(t => t.Description != null && t.Description.ToLower().Contains(search));
+            }
+
+            q = query.OrderBy?.ToLower() switch
+            {
+                "date_asc" => q.OrderBy(t => t.TransactionDate).ThenBy(t => t.CreatedAt),
+                "value_desc" => q.OrderByDescending(t => t.Value),
+                "value_asc" => q.OrderBy(t => t.Value),
+                _ => q.OrderByDescending(t => t.TransactionDate).ThenByDescending(t => t.CreatedAt)
+            };
+
+            var totalItems = await q.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)query.PageSize);
+
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(t => new GetTransactionResponseDto
+                {
+                    Id = t.Id,
+                    BudgetId = t.BudgetId,
+                    SubCategoryId = t.SubCategoryId,
+                    SubCategoryName = t.SubCategory.Name,
+                    AccountId = t.AccountId,
+                    AccountName = t.Account.Name,
+                    RecurringTransactionId = t.RecurringTransactionId,
+                    ParentTransactionId = t.ParentTransactionId,
+                    Value = t.Value,
+                    Type = t.Type,
+                    Description = t.Description,
+                    TransactionDate = t.TransactionDate,
+                    PaymentType = t.PaymentType,
+                    InstallmentNumber = t.InstallmentNumber,
+                    TotalInstallments = t.TotalInstallments,
+                })
+                .ToListAsync();
+
+            return new PagedResponse<GetTransactionResponseDto>
+            {
+                CurrentPage = query.Page,
+                PageSize = query.PageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                RowCount = items.Count,
+                Items = items
+            };
+        }
+
         public async Task<Result<IEnumerable<GetTransactionResponseDto>>> GetAllTransactionsByBudgetAsync(int budgetId, int userId)
         {
             var budgetExists = await _context.Budgets

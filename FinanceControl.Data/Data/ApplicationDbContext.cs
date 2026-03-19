@@ -22,6 +22,8 @@ namespace FinanceControl.Data.Data
         public DbSet<RecurringTransaction> RecurringTransactions { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<Bank> Banks { get; set; }
+        public DbSet<CurrencyRate> CurrencyRates { get; set; }
 
         public override int SaveChanges()
         {

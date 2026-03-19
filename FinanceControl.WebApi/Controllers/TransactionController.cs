@@ -19,17 +19,20 @@ namespace FinanceControl.WebApi.Controllers
         private readonly IValidator<CreateTransactionRequestDto> _createTransactionValidator;
         private readonly IValidator<UpdateTransactionRequestDto> _updateTransactionValidator;
         private readonly IValidator<UpdateRecurringTransactionRequestDto> _updateRecurringTransactionValidator;
+        private readonly IValidator<GetTransactionsQueryDto> _getTransactionsQueryValidator;
 
         public TransactionController(
             ITransactionService transactionService,
             IValidator<CreateTransactionRequestDto> createTransactionValidator,
             IValidator<UpdateTransactionRequestDto> updateTransactionValidator,
-            IValidator<UpdateRecurringTransactionRequestDto> updateRecurringTransactionValidator)
+            IValidator<UpdateRecurringTransactionRequestDto> updateRecurringTransactionValidator,
+            IValidator<GetTransactionsQueryDto> getTransactionsQueryValidator)
         {
             _transactionService = transactionService;
             _createTransactionValidator = createTransactionValidator;
             _updateTransactionValidator = updateTransactionValidator;
             _updateRecurringTransactionValidator = updateRecurringTransactionValidator;
+            _getTransactionsQueryValidator = getTransactionsQueryValidator;
         }
 
         [HttpPost]
@@ -49,11 +52,15 @@ namespace FinanceControl.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllTransactionsAsync()
+        public async Task<IActionResult> GetAllTransactionsAsync([FromQuery] GetTransactionsQueryDto query)
         {
+            var validationResult = _getTransactionsQueryValidator.Validate(query);
+            if (validationResult.ToActionResult() is { } errorResult)
+                return errorResult;
+
             var userId = GetUserId();
 
-            var result = await _transactionService.GetAllTransactionsAsync(userId);
+            var result = await _transactionService.GetAllTransactionsPagedAsync(query, userId);
             return Ok(result);
         }
 

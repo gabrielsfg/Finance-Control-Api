@@ -45,6 +45,8 @@ builder.Services.AddRateLimiter(options =>
 
 //DI Services
 builder.Services.AddAplicationServices();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<FinanceControl.Domain.Interfaces.Services.IExchangeRateService, FinanceControl.Services.Services.ExchangeRateService>();
 
 
 //DI Repositories

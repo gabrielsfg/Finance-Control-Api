@@ -20,13 +20,20 @@ namespace FinanceControl.WebApi.Controllers
         private readonly IUserService _userService;
         private readonly IValidator<CreateUserRequestDto> _createUserValidator;
         private readonly IValidator<UserLoginRequestDto> _userLoginValidator;
+        private readonly IValidator<PatchUserRequestDto> _patchUserValidator;
         private readonly IConfiguration _configuration;
 
-        public UserController(IUserService userService, IValidator<CreateUserRequestDto> createUserValidator, IValidator<UserLoginRequestDto> userLoginValidator, IConfiguration configuration)
+        public UserController(
+            IUserService userService,
+            IValidator<CreateUserRequestDto> createUserValidator,
+            IValidator<UserLoginRequestDto> userLoginValidator,
+            IValidator<PatchUserRequestDto> patchUserValidator,
+            IConfiguration configuration)
         {
             _userService = userService;
             _createUserValidator = createUserValidator;
             _userLoginValidator = userLoginValidator;
+            _patchUserValidator = patchUserValidator;
             _configuration = configuration;
         }
 
@@ -149,6 +156,10 @@ namespace FinanceControl.WebApi.Controllers
         [HttpPatch("me")]
         public async Task<IActionResult> PatchMeAsync([FromBody] PatchUserRequestDto requestDto)
         {
+            var validationResult = _patchUserValidator.Validate(requestDto);
+            if (validationResult.ToActionResult() is { } errorResult)
+                return errorResult;
+
             var userId = GetUserId();
             var user = await _userService.UpdateUserAsync(userId, requestDto);
             if (user is null)

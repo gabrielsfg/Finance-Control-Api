@@ -1,9 +1,11 @@
 using FinanceControl.Data.Data;
+using FinanceControl.Data.Seed;
 using FinanceControl.Domain.Entities;
 using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Response;
+using FinanceControl.Shared.Enums;
 using FinanceControl.Shared.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +51,7 @@ namespace FinanceControl.Services.Services
             _context.Add(user);
             await _context.SaveChangesAsync();
 
+            // System category for balance updates
             var systemCategory = new Category
             {
                 UserId = user.Id,
@@ -66,6 +69,43 @@ namespace FinanceControl.Services.Services
                 IsSystem = true
             };
             _context.SubCategories.Add(systemSubCategory);
+            await _context.SaveChangesAsync();
+
+            // Default categories and subcategories
+            foreach (var (categoryName, _, subCategories) in DefaultUserDataSeed.GetDefaultCategories())
+            {
+                var category = new Category
+                {
+                    UserId = user.Id,
+                    Name = categoryName,
+                    IsSystem = true
+                };
+                _context.Categories.Add(category);
+                await _context.SaveChangesAsync();
+
+                foreach (var subName in subCategories)
+                {
+                    _context.SubCategories.Add(new SubCategory
+                    {
+                        UserId = user.Id,
+                        CategoryId = category.Id,
+                        Name = subName,
+                        IsSystem = true
+                    });
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            // Default account "Conta Principal"
+            var defaultAccount = new Account
+            {
+                UserId = user.Id,
+                Name = "Conta Principal",
+                AccountType = EnumAccountType.Checking,
+                IsDefaultAccount = true,
+                IsExcludedFromNetWorth = false
+            };
+            _context.Accounts.Add(defaultAccount);
             await _context.SaveChangesAsync();
 
             var rawVerificationToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
@@ -252,7 +292,7 @@ namespace FinanceControl.Services.Services
             if (requestDto.PreferredLanguage is not null)
                 user.PreferredLanguage = requestDto.PreferredLanguage;
             if (requestDto.Country is not null)
-                user.Country = requestDto.Country;
+                user.Country = requestDto.Country.ToUpper();
 
             await _context.SaveChangesAsync();
 

@@ -1,10 +1,6 @@
 ﻿using FinanceControl.Shared.Dtos.Request;
+using FinanceControl.Shared.Enums;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FinanceControl.Services.Validations
 {
@@ -12,7 +8,36 @@ namespace FinanceControl.Services.Validations
     {
         public UpdateAccountValidator()
         {
-            RuleFor(a => a.Name).NotEmpty().WithMessage("Name is required");
+            RuleFor(a => a.Name).NotEmpty().WithMessage("Name is required.");
+
+            RuleFor(a => a.AccountType).IsInEnum()
+                .WithMessage($"AccountType must be one of: {string.Join(", ", Enum.GetNames<EnumAccountType>())}.");
+
+            RuleFor(a => a.CreditLimit)
+                .NotNull().WithMessage("CreditLimit is required for Credit accounts.")
+                .GreaterThan(0).WithMessage("CreditLimit must be greater than 0.")
+                .When(a => a.AccountType == EnumAccountType.Credit);
+
+            RuleFor(a => a.BillingDueDay)
+                .NotNull().WithMessage("BillingDueDay is required for Credit accounts.")
+                .InclusiveBetween(1, 31).WithMessage("BillingDueDay must be between 1 and 31.")
+                .When(a => a.AccountType == EnumAccountType.Credit);
+
+            RuleFor(a => a.CreditLimit)
+                .Null().WithMessage("CreditLimit is only valid for Credit accounts.")
+                .When(a => a.AccountType != EnumAccountType.Credit);
+
+            RuleFor(a => a.BillingDueDay)
+                .Null().WithMessage("BillingDueDay is only valid for Credit accounts.")
+                .When(a => a.AccountType != EnumAccountType.Credit);
+
+            RuleFor(a => a.GoalAmount)
+                .GreaterThan(0).WithMessage("GoalAmount must be greater than 0.")
+                .When(a => a.GoalAmount.HasValue);
+
+            RuleFor(a => a.GoalAmount)
+                .Null().WithMessage("GoalAmount is only valid for Savings accounts.")
+                .When(a => a.AccountType != EnumAccountType.Savings && a.GoalAmount.HasValue);
         }
     }
 }

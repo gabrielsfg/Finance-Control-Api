@@ -90,6 +90,43 @@ namespace FinanceControl.Services.Services
             return budgets;
         }
 
+        public async Task<PagedResponse<GetAllBudgetResponseDto>> GetAllBudgetPagedAsync(GetBudgetsQueryDto query, int userId)
+        {
+            var q = _context.Budgets.Where(b => b.UserId == userId);
+
+            q = query.OrderBy?.ToLower() switch
+            {
+                "name_desc" => q.OrderByDescending(b => b.Name),
+                "created_asc" => q.OrderBy(b => b.CreatedAt),
+                "created_desc" => q.OrderByDescending(b => b.CreatedAt),
+                _ => q.OrderBy(b => b.Name)
+            };
+
+            var totalItems = await q.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)query.PageSize);
+
+            var items = await q
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .Select(b => new GetAllBudgetResponseDto
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Recurrence = b.Recurrence
+                })
+                .ToListAsync();
+
+            return new PagedResponse<GetAllBudgetResponseDto>
+            {
+                CurrentPage = query.Page,
+                PageSize = query.PageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                RowCount = items.Count,
+                Items = items
+            };
+        }
+
         public async Task<GetBudgetByIdResponseDto> GetBudgetByIdAsync(int id, int userId)
         {
             var budget = await _context.Budgets.FirstOrDefaultAsync(b => b.UserId == userId && b.Id == id);
