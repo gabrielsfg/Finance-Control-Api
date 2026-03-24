@@ -20,6 +20,7 @@ namespace FinanceControl.Services.Extensions
             services.AddScoped<IBudgetSubCategoryAllocationService, BudgetSubCategoryAllocationService>();
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IBankService, BankService>();
+            services.AddScoped<IWishlistService, WishlistService>();
             // IExchangeRateService is registered via AddHttpClient in Program.cs
 
             return services;

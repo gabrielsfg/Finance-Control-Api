@@ -24,6 +24,9 @@ namespace FinanceControl.Data.Data
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<Bank> Banks { get; set; }
         public DbSet<CurrencyRate> CurrencyRates { get; set; }
+        public DbSet<WishlistItem> WishlistItems { get; set; }
+        public DbSet<WishlistItemLink> WishlistItemLinks { get; set; }
+        public DbSet<WishlistItemPriceHistory> WishlistItemPriceHistory { get; set; }
 
         public override int SaveChanges()
         {
