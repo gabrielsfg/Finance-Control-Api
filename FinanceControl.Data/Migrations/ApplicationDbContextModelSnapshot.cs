@@ -748,6 +748,10 @@ namespace FinanceControl.Data.Migrations
                     b.Property<int?>("ParentTransactionId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("PaymentType")
                         .IsRequired()
                         .HasColumnType("text");

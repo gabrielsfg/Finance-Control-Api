@@ -24,6 +24,7 @@ namespace FinanceControl.Data.Mappings
             builder.Property(t => t.PaymentType)
                 .HasConversion<string>()
                 .IsRequired();
+            builder.Property(t => t.PaymentMethod).HasMaxLength(50).IsRequired(false);
             builder.Property(t => t.InstallmentNumber);
             builder.Property(t => t.TotalInstallments);
             builder.Property(t => t.CreatedAt)

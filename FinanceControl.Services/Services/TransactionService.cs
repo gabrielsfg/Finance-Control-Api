@@ -24,6 +24,17 @@ namespace FinanceControl.Services.Services
 
         public async Task<Result<CreateTransactionResponseDto>> CreateTransactionAsync(CreateTransactionRequestDto requestDto, int userId)
         {
+            if (!string.IsNullOrEmpty(requestDto.PaymentMethod))
+            {
+                var userCountry = await _context.Users
+                    .Where(u => u.Id == userId)
+                    .Select(u => u.Country)
+                    .FirstOrDefaultAsync();
+
+                if (!PaymentMethodsByCountry.IsValid(requestDto.PaymentMethod, userCountry))
+                    return Result<CreateTransactionResponseDto>.Failure($"PaymentMethod '{requestDto.PaymentMethod}' is not valid for your country.");
+            }
+
             var accountExists = await _context.Accounts
                 .AnyAsync(a => a.Id == requestDto.AccountId && a.UserId == userId);
             if (!accountExists)
@@ -142,6 +153,7 @@ namespace FinanceControl.Services.Services
                     Description = t.Description,
                     TransactionDate = t.TransactionDate,
                     PaymentType = t.PaymentType,
+                    PaymentMethod = t.PaymentMethod,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
                 })
@@ -219,6 +231,7 @@ namespace FinanceControl.Services.Services
                     Description = t.Description,
                     TransactionDate = t.TransactionDate,
                     PaymentType = t.PaymentType,
+                    PaymentMethod = t.PaymentMethod,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
                 })
@@ -457,6 +470,7 @@ namespace FinanceControl.Services.Services
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.OneTime,
+                PaymentMethod = dto.PaymentMethod,
             };
 
             _context.Transactions.Add(transaction);
@@ -482,6 +496,7 @@ namespace FinanceControl.Services.Services
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.Installment,
+                PaymentMethod = dto.PaymentMethod,
                 InstallmentNumber = 1,
                 TotalInstallments = dto.TotalInstallments,
             };
@@ -505,6 +520,7 @@ namespace FinanceControl.Services.Services
                     Description = dto.Description,
                     TransactionDate = dto.TransactionDate.AddMonths(i - 1),
                     PaymentType = EnumPaymentType.Installment,
+                    PaymentMethod = dto.PaymentMethod,
                     InstallmentNumber = i,
                     TotalInstallments = dto.TotalInstallments,
                 };
@@ -552,6 +568,7 @@ namespace FinanceControl.Services.Services
                 Description = dto.Description,
                 TransactionDate = dto.TransactionDate,
                 PaymentType = EnumPaymentType.Recurring,
+                PaymentMethod = dto.PaymentMethod,
             };
 
             _context.Transactions.Add(transaction);
@@ -577,6 +594,7 @@ namespace FinanceControl.Services.Services
                     Description = t.Description,
                     TransactionDate = t.TransactionDate,
                     PaymentType = t.PaymentType,
+                    PaymentMethod = t.PaymentMethod,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
                 });
@@ -601,6 +619,7 @@ namespace FinanceControl.Services.Services
                     Description = t.Description,
                     TransactionDate = t.TransactionDate,
                     PaymentType = t.PaymentType,
+                    PaymentMethod = t.PaymentMethod,
                     InstallmentNumber = t.InstallmentNumber,
                     TotalInstallments = t.TotalInstallments,
                 })
