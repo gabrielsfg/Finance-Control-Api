@@ -6,7 +6,6 @@ using FinanceControl.WebApi.Controllers.Base;
 using FinanceControl.WebApi.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinanceControl.WebApi.Controllers
@@ -41,12 +40,10 @@ namespace FinanceControl.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllBudgetsAsync()
+        public async Task<IActionResult> GetAllBudgetsAsync([FromQuery] GetBudgetsQueryDto query)
         {
             var userId = GetUserId();
-
-            var result = await _budgetService.GetAllBudgetAsync(userId);
-
+            var result = await _budgetService.GetAllBudgetPagedAsync(query, userId);
             return Ok(result);
         }
 

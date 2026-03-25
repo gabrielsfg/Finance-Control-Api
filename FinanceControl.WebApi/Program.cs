@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using FinanceControl.Data.Data;
 using FinanceControl.Domain.Interfaces.Service;
 using FinanceControl.Services.Extensions;
@@ -8,14 +9,44 @@ using FinanceControl.Shared.Dtos;
 using FinanceControl.Shared.Dtos.Request;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Validate JWT token key length at startup
+var jwtToken = builder.Configuration["AppSettings:Token"];
+if (string.IsNullOrEmpty(jwtToken) || jwtToken.Length < 32)
+    throw new InvalidOperationException("AppSettings:Token must be at least 32 characters long.");
+
+// Rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+
+    options.AddFixedWindowLimiter("general", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+
+    options.AddFixedWindowLimiter("auth", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(15);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+});
+
 //DI Services
 builder.Services.AddAplicationServices();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<FinanceControl.Domain.Interfaces.Services.IExchangeRateService, FinanceControl.Services.Services.ExchangeRateService>();
 
 
 //DI Repositories
@@ -79,9 +110,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("general");
 
 app.Run();

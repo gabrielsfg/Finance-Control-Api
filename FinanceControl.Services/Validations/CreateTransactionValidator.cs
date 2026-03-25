@@ -1,6 +1,7 @@
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Enums;
 using FluentValidation;
+using System.Text.RegularExpressions;
 
 namespace FinanceControl.Services.Validations
 {
@@ -22,6 +23,11 @@ namespace FinanceControl.Services.Validations
 
             RuleFor(x => x.PaymentType).IsInEnum()
                 .WithMessage($"PaymentType must be one of: {string.Join(", ", Enum.GetNames<EnumPaymentType>())}.");
+
+            RuleFor(x => x.PaymentMethod)
+                .MaximumLength(50).WithMessage("PaymentMethod must not exceed 50 characters.")
+                .Matches(@"^[A-Z0-9_]+$").WithMessage("PaymentMethod must contain only uppercase letters, digits and underscores.")
+                .When(x => !string.IsNullOrEmpty(x.PaymentMethod));
 
             RuleFor(x => x.TransactionDate)
                 .NotEmpty().WithMessage("TransactionDate is required.");

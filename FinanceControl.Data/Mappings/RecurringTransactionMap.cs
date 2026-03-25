@@ -19,7 +19,7 @@ namespace FinanceControl.Data.Mappings
             builder.Property(rt => rt.Type)
                 .HasConversion<string>()
                 .IsRequired();
-            builder.Property(rt => rt.Description).IsRequired();
+            builder.Property(rt => rt.Description).IsRequired(false);
             builder.Property(rt => rt.Recurrence)
                 .HasConversion<string>()
                 .IsRequired();

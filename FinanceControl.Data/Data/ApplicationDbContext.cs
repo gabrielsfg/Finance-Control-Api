@@ -20,6 +20,13 @@ namespace FinanceControl.Data.Data
         public DbSet<BudgetSubcategoryAllocation> BudgetSubcategoryAllocations { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<RecurringTransaction> RecurringTransactions { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<Bank> Banks { get; set; }
+        public DbSet<CurrencyRate> CurrencyRates { get; set; }
+        public DbSet<WishlistItem> WishlistItems { get; set; }
+        public DbSet<WishlistItemLink> WishlistItemLinks { get; set; }
+        public DbSet<WishlistItemPriceHistory> WishlistItemPriceHistory { get; set; }
 
         public override int SaveChanges()
         {

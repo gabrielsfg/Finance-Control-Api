@@ -7,11 +7,6 @@ using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FinanceControl.Services.Services
 {
@@ -30,9 +25,12 @@ namespace FinanceControl.Services.Services
             {
                 UserId = userId,
                 Name = requestDto.Name,
-                CurrentBalance = requestDto.CurrentBalance,
+                AccountType = requestDto.AccountType,
                 GoalAmount = requestDto.GoalAmount,
-                IsDefaultAccount = requestDto.IsDefaultAccount
+                IsDefaultAccount = requestDto.IsDefaultAccount,
+                IsExcludedFromNetWorth = requestDto.IsExcludedFromNetWorth,
+                BillingDueDay = requestDto.BillingDueDay,
+                CreditLimit = requestDto.CreditLimit
             };
 
             var hasAnyAccount = await _context.Accounts.AnyAsync(a => a.UserId == userId);
@@ -63,8 +61,17 @@ namespace FinanceControl.Services.Services
                 {
                     Id = a.Id,
                     Name = a.Name,
-                    CurrentAmount = a.CurrentBalance,
-                    IsDefaultAccount = a.IsDefaultAccount
+                    AccountType = a.AccountType,
+                    CurrentAmount = a.Transactions
+                        .Where(t => t.Type == EnumTransactionType.Income)
+                        .Sum(t => t.Value)
+                        - a.Transactions
+                        .Where(t => t.Type == EnumTransactionType.Expense)
+                        .Sum(t => t.Value),
+                    IsDefaultAccount = a.IsDefaultAccount,
+                    IsExcludedFromNetWorth = a.IsExcludedFromNetWorth,
+                    BillingDueDay = a.BillingDueDay,
+                    CreditLimit = a.CreditLimit
                 })
                 .ToListAsync();
 
@@ -104,13 +111,21 @@ namespace FinanceControl.Services.Services
                 CategoryName = t.CategoryName
             }).ToList();
 
+            var currentAmount = await _context.Transactions
+                .Where(t => t.UserId == userId && t.AccountId == id)
+                .SumAsync(t => t.Type == EnumTransactionType.Income ? t.Value : -t.Value);
+
             return new GetAccountByIdResponseDto()
             {
                 Id = account.Id,
                 Name = account.Name,
-                CurrentAmount = account.CurrentBalance,
+                AccountType = account.AccountType,
+                CurrentAmount = currentAmount,
                 GoalAmount = account.GoalAmount,
                 IsDefaultAccount = account.IsDefaultAccount,
+                IsExcludedFromNetWorth = account.IsExcludedFromNetWorth,
+                BillingDueDay = account.BillingDueDay,
+                CreditLimit = account.CreditLimit,
                 RecentTransactions = recentTransactions
             };
         }
@@ -122,40 +137,13 @@ namespace FinanceControl.Services.Services
             if (account == null)
                 return Result<IEnumerable<GetAccountItemResponseDto>>.Failure("Account not found.");
 
-            var oldBalance = account.CurrentBalance;
-
             account.Name = requestDto.Name;
-            account.CurrentBalance = requestDto.CurrentBalance;
+            account.AccountType = requestDto.AccountType;
             account.GoalAmount = requestDto.GoalAmount;
             account.IsDefaultAccount = requestDto.IsDefaultAccount;
-
-            if (requestDto.CurrentBalance != oldBalance)
-            {
-                var balanceDiff = requestDto.CurrentBalance - oldBalance;
-                var transactionType = balanceDiff > 0 ? EnumTransactionType.Income : EnumTransactionType.Expense;
-
-                var systemSubCategory = await _context.SubCategories
-                    .FirstOrDefaultAsync(s => s.UserId == userId && s.IsSystem);
-
-                var activeBudget = await _context.Budgets
-                    .FirstOrDefaultAsync(b => b.UserId == userId && b.IsActive);
-
-                var transaction = new Transaction
-                {
-                    UserId = userId,
-                    BudgetId = activeBudget?.Id,
-                    SubCategoryId = systemSubCategory!.Id,
-                    AccountId = account.Id,
-                    Value = Math.Abs(balanceDiff),
-                    Type = transactionType,
-                    Description = "Balance adjustment",
-                    TransactionDate = DateOnly.FromDateTime(DateTime.UtcNow),
-                    PaymentType = EnumPaymentType.OneTime,
-                    IsPaid = false
-                };
-
-                _context.Transactions.Add(transaction);
-            }
+            account.IsExcludedFromNetWorth = requestDto.IsExcludedFromNetWorth;
+            account.BillingDueDay = requestDto.BillingDueDay;
+            account.CreditLimit = requestDto.CreditLimit;
 
             await _context.SaveChangesAsync();
             var accounts = await GetAllAccountAsync(userId);

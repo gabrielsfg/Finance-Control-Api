@@ -1,4 +1,3 @@
-using FinanceControl.Domain.Entities;
 using FinanceControl.Shared.Dtos.Request;
 using FinanceControl.Shared.Dtos.Response;
 using FinanceControl.Shared.Models;
@@ -14,7 +13,7 @@ namespace FinanceControl.Domain.Interfaces.Service
     {
         Task<Result<IEnumerable<CategoryResponseDto>>> CreateCategoryAsync(CreateCategoryRequestDto requestDto, int userId);
         Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync(int userId);
-        Task<Result<IEnumerable<CategoryResponseDto>>> UpdateCategoriesAsync(UpdateCategoriesRequestDto requestDto, int userId);
+        Task<Result<IEnumerable<CategoryResponseDto>>> UpdateCategoryAsync(UpdateCategoryRequestDto requestDto, int userId);
         Task<Result<IEnumerable<CategoryResponseDto>>> DeleteCategoryByIdAsync(int id, int userId);
 
     }

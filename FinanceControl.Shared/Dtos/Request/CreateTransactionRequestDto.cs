@@ -9,9 +9,10 @@ namespace FinanceControl.Shared.Dtos.Request
         public int AccountId { get; set; }
         public int Value { get; set; }
         public EnumTransactionType Type { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public DateOnly TransactionDate { get; set; }
         public EnumPaymentType PaymentType { get; set; }
+        public string? PaymentMethod { get; set; }
         public int? TotalInstallments { get; set; }
         public EnumRecurrenceType? Recurrence { get; set; }
     }

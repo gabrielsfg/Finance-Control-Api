@@ -30,18 +30,28 @@ namespace FinanceControl.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("BillingDueDay")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
                         .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
 
-                    b.Property<int>("CurrentBalance")
+                    b.Property<int?>("CreditLimit")
                         .HasColumnType("integer");
 
                     b.Property<int?>("GoalAmount")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsDefaultAccount")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsExcludedFromNetWorth")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Name")
@@ -128,6 +138,244 @@ namespace FinanceControl.Data.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("AreaCategories", (string)null);
+                });
+
+            modelBuilder.Entity("FinanceControl.Domain.Entities.Bank", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Banks", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "001",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Banco do Brasil"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "237",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Bradesco"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "341",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Itaú Unibanco"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "104",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Caixa Econômica Federal"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "033",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Santander Brasil"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "260",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Nubank"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "077",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Inter"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Code = "336",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "C6 Bank"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Code = "341",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "XP Investimentos"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Code = "380",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "PicPay"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Code = "756",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Sicoob"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Code = "748",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Sicredi"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Code = "208",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "BTG Pactual"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Code = "735",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Neon"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Code = "323",
+                            Country = "BR",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Mercado Pago"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Code = "CHASUS33",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "JPMorgan Chase"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Code = "BOFAUS3N",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Bank of America"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Code = "WFBIUS6S",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Wells Fargo"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Code = "CITIUS33",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Citibank"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Code = "USBKUS44",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "U.S. Bancorp"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Code = "SNTRUS3A",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Truist Financial"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Code = "PNCCUS33",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "PNC Financial"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Code = "GSCOUSS",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Goldman Sachs"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Code = "HIBKUS44",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Capital One"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Code = "AEIBUS33",
+                            Country = "US",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "American Express"
+                        });
                 });
 
             modelBuilder.Entity("FinanceControl.Domain.Entities.Budget", b =>
@@ -251,6 +499,84 @@ namespace FinanceControl.Data.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
+            modelBuilder.Entity("FinanceControl.Domain.Entities.CurrencyRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BaseCurrency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
+
+                    b.Property<DateTime>("FetchedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<decimal>("Rate")
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<string>("TargetCurrency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BaseCurrency", "TargetCurrency")
+                        .IsUnique();
+
+                    b.ToTable("CurrencyRates", (string)null);
+                });
+
+            modelBuilder.Entity("FinanceControl.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens", (string)null);
+                });
+
             modelBuilder.Entity("FinanceControl.Domain.Entities.RecurringTransaction", b =>
                 {
                     b.Property<int>("Id")
@@ -271,7 +597,6 @@ namespace FinanceControl.Data.Migrations
                         .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateOnly?>("EndDate")
@@ -315,6 +640,43 @@ namespace FinanceControl.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RecurringTransactions", (string)null);
+                });
+
+            modelBuilder.Entity("FinanceControl.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("FinanceControl.Domain.Entities.SubCategory", b =>
@@ -378,17 +740,17 @@ namespace FinanceControl.Data.Migrations
                         .HasDefaultValueSql("timezone('America/Sao_Paulo', now())");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("InstallmentNumber")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("boolean");
-
                     b.Property<int?>("ParentTransactionId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("PaymentType")
                         .IsRequired()
@@ -445,6 +807,10 @@ namespace FinanceControl.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Country")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
@@ -454,10 +820,29 @@ namespace FinanceControl.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("EmailVerificationTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EmailVerificationTokenHash")
+                        .HasColumnType("text");
+
+                    b.Property<int>("FailedLoginAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
+
+                    b.Property<bool>("IsEmailVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -466,6 +851,20 @@ namespace FinanceControl.Data.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("PreferredCurrency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasDefaultValue("BRL");
+
+                    b.Property<string>("PreferredLanguage")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("pt-BR");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -564,6 +963,17 @@ namespace FinanceControl.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("FinanceControl.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("FinanceControl.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("FinanceControl.Domain.Entities.RecurringTransaction", b =>
                 {
                     b.HasOne("FinanceControl.Domain.Entities.Account", "Account")
@@ -594,6 +1004,17 @@ namespace FinanceControl.Data.Migrations
                     b.Navigation("Budget");
 
                     b.Navigation("SubCategory");
+                });
+
+            modelBuilder.Entity("FinanceControl.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("FinanceControl.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FinanceControl.Domain.Entities.SubCategory", b =>
