@@ -5,9 +5,15 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-EF_Core_9-336791?style=flat&logo=postgresql)
 ![JWT](https://img.shields.io/badge/Auth-JWT_Bearer-000000?style=flat&logo=jsonwebtokens)
 ![Swagger](https://img.shields.io/badge/Docs-Swagger-85EA2D?style=flat&logo=swagger)
-![Status](https://img.shields.io/badge/Status-Feature_Complete-brightgreen?style=flat)
+![Status](https://img.shields.io/badge/Status-Moved_to_Monorepo-blue?style=flat)
 
-A RESTful API built with ASP.NET Core for managing personal finances. It handles user authentication, multi-account management, hierarchical budgeting, and provides analytics for spending patterns — all designed to be consumed by the [Finance Control App](https://github.com/gabrielsfg/Finance-Control-App) mobile client.
+> ## ⚠️ This repository is no longer maintained
+>
+> Development has moved to a **monorepo** that combines the .NET API and the Flutter app in one place.
+>
+> ### 👉 [github.com/gabrielsfg/Finance-Control](https://github.com/gabrielsfg/Finance-Control)
+>
+> This repository is kept as a reference only. All new code, issues, and pull requests should go to the monorepo above.
 
 ---
 
@@ -26,11 +32,24 @@ This is a personal project built to deepen expertise in .NET backend development
 | Feature | Status |
 |---|---|
 | User registration & JWT authentication | ✅ Done |
+| Refresh token rotation (single-use, 7-day expiry) | ✅ Done |
+| Email verification on registration | ✅ Done |
+| Forgot password & reset password via email | ✅ Done |
+| Logout (refresh token revocation) | ✅ Done |
+| User profile update (name, currency, language, country) | ✅ Done |
+| Account deletion with password confirmation (LGPD) | ✅ Done |
+| Financial data reset with password confirmation | ✅ Done |
 | Multi-account management (balance + savings goal) | ✅ Done |
 | Hierarchical categories (Category → SubCategory → Area) | ✅ Done |
 | One-time, installment & recurring transactions | ✅ Done |
+| Payment method field on transactions | ✅ Done |
+| Country-based payment method validation | ✅ Done |
 | Budget management with sub-category allocations | ✅ Done |
 | Dashboard analytics (balance, top categories, budget performance) | ✅ Done |
+| Wishlist item management (CRUD + pagination) | ✅ Done |
+| Wishlist price tracking & price history | ✅ Done |
+| Wishlist item purchase (creates linked expense transaction) | ✅ Done |
+| Wishlist priority & status (Active / Purchased / Archived) | ✅ Done |
 | Swagger UI with Bearer token support | ✅ Done |
 
 ---
@@ -45,6 +64,7 @@ This is a personal project built to deepen expertise in .NET backend development
 | JWT Bearer | Authentication | — |
 | FluentValidation | Request DTO validation | 12.x |
 | Swagger / Swashbuckle | API documentation | 10.x |
+| SmtpClient | Email (verification & password reset) | — |
 
 ---
 
@@ -66,22 +86,27 @@ FinanceControl.sln
 - **OwnedEntity base class** — all user-owned entities inherit `UserId`, enforcing multi-user data isolation at the model level
 - **BaseController** — shared `GetUserId()` method extracts the authenticated user's ID from JWT claims, used across all controllers
 - **Repository-less services** — business logic lives in services that directly use the EF Core DbContext, keeping the stack pragmatic and lean
+- **SHA256 token hashing** — refresh tokens and password reset tokens are stored hashed, never in plain text
 
 ---
 
 ## API Endpoints Overview
 
-All endpoints except `/api/user/register` and `/api/user/login` require a `Authorization: Bearer <token>` header.
+All endpoints except `/api/user/register` and `/api/user/login` require an `Authorization: Bearer <token>` header.
 
 | Group | Endpoints |
 |---|---|
-| Auth | `POST /api/user/register`, `POST /api/user/login` |
+| Auth | `POST /api/user/register`, `POST /api/user/login`, `POST /api/user/refresh`, `POST /api/user/logout` |
+| Email | `GET /api/user/verify-email` |
+| Password | `POST /api/user/forgot-password`, `POST /api/user/reset-password` |
+| User Profile | `GET /api/user/me`, `PATCH /api/user/me`, `DELETE /api/user/me`, `POST /api/user/me/reset-data` |
 | Accounts | CRUD `/api/account` |
 | Categories | CRUD `/api/category`, `/api/subcategory` |
 | Areas | CRUD `/api/area`, `/api/areacategory` |
 | Budgets | CRUD `/api/budget`, `/api/budgetsubcategoryallocation` |
 | Transactions | CRUD `/api/transaction` + recurring management |
 | Dashboard | `GET /api/mainpage/summary?startDate=&finishDate=&budgetId=` |
+| Wishlist | CRUD `/api/wishlist`, `POST /api/wishlist/{id}/price`, `POST /api/wishlist/{id}/purchase`, `GET /api/wishlist/{id}/price-history` |
 
 Full interactive documentation is available via Swagger UI after running the project.
 
@@ -98,8 +123,8 @@ Full interactive documentation is available via Swagger UI after running the pro
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/gabrielsfg/FinanceControl.git
-cd FinanceControl
+git clone https://github.com/gabrielsfg/Finance-Control-Api.git
+cd Finance-Control-Api
 
 # 2. Restore dependencies
 dotnet restore
@@ -118,7 +143,15 @@ Edit `FinanceControl.WebApi/appsettings.Development.json`:
     "Token": "your-secret-key-minimum-32-characters",
     "Issuer": "http://localhost:5112",
     "Audience": "http://localhost:5112",
-    "TokenValidityMins": 60
+    "TokenValidityMins": 60,
+    "BackendUrl": "http://localhost:5112"
+  },
+  "EmailSettings": {
+    "SmtpHost": "smtp.example.com",
+    "SmtpPort": 587,
+    "SmtpUser": "your@email.com",
+    "SmtpPass": "your-password",
+    "FromAddress": "your@email.com"
   }
 }
 ```
@@ -139,18 +172,8 @@ Swagger UI: `http://localhost:5112/swagger/index.html`
 
 ---
 
-## Related Repository
+## Monorepo
 
-This API is consumed by the **Finance Control App** — a Flutter mobile app for Android and iOS.
+This repository has been archived in favour of a monorepo that contains both the API and the Flutter mobile client:
 
-[Finance Control App →](https://github.com/gabrielsfg/Finance-Control-App)
-
-The app communicates with this API using JWT tokens stored in secure device storage. Authentication state is managed with Riverpod and GoRouter handles auth-aware navigation.
-
----
-
-## Project Status
-
-The backend is **feature-complete** for the initial version. All core domain features are implemented and the API is ready to be consumed by the frontend.
-
-Active frontend development is ongoing in the [Finance Control App](https://github.com/gabrielsfg/Finance-Control-App) repository.
+**[github.com/gabrielsfg/Finance-Control](https://github.com/gabrielsfg/Finance-Control)**
